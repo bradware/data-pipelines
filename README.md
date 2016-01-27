@@ -1,4 +1,2 @@
-# kafka-9
-Kafka 9 Scala 
-
+# Kafka-9
 Mock repo to explore using Kafka 9 consumers
