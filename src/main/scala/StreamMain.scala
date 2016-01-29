@@ -5,6 +5,12 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Sink, Source}
 import org.apache.kafka.clients.consumer.KafkaConsumer
 
+// PIPELINE DEMO OVERVIEW
+// 1. Pull messages from Kafka Consumer into Akka ActorPublisher
+// 2. Push Messages through an Akka Stream/Runnable Flow and undergo some transformation (Source)
+// 3. Subscriber needs to read the messages from the Akka Stream/Runnable Flow (Sink)
+// 4. Subscriber/Sink dumps the transformed to the console
+
 object StreamMain extends App {
   implicit val system = ActorSystem("Twitter-MailChimp")
   implicit val materializer = ActorMaterializer()

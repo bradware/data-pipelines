@@ -6,7 +6,6 @@ import scala.collection.JavaConversions._
 // Data Structure to hold the message data
 case class EmailMessage(message: String)
 
-// Actor 1 ----> Actor 2 -----> Actor 3 -----> Dumps to console
 // Actor 1
 class EmailActor extends Actor {
   val processor = context.system.actorOf(Props[EmailProcessor], "EmailProcessor")
@@ -40,13 +39,9 @@ class EmailPrinter extends Actor {
 class TwitterActor(consumer: KafkaConsumer[String, String]) extends ActorPublisher[String] {
   consumer.subscribe(List("twitter-mailchimp")) //Kafka-Consumer reading from the topic new-test
 
-  def receive = {
-    case msg => println(msg)
-  }
-
-  def grabMessages = {
-    consumer.poll(100);
-  }
+  /*
+    Read through Actor Publisher docs to see what to implement
+  */
 }
 
 object TwitterActor {

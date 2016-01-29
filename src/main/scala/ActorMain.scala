@@ -6,10 +6,10 @@ import scala.collection.JavaConversions._
 import akka.actor.{ ActorRef, ActorSystem, Props }
 
 // PIPELINE DEMO OVERVIEW
-// 1. Push messages to an Akka Stream from the Publisher
-// 2. Messages go through a Runnable Flow in the Akka Stream and undergo some transformation
-// 3. Subscriber needs to read the messages from the Akka Stream
-// 4. Subscriber should dump the transformed data back out to console
+// 1. Push messages to an Akka Actor from the Kafka Consumer
+// 2. Messages go through a actor transition and undergo transformation
+// 3. Final actor dumps output to console
+// Actor 1 ----> Actor 2 -----> Actor 3 -----> Dumps to console
 
 object ActorMain extends App {
   // Akka Steam actor setup and creation
