@@ -1,2 +1,2 @@
-# Kafka9 Consumer
-Mock repo to explore using Kafka 9 consumers
+# Pipeline Demo
+Mock repo using Kafka producers as input (command line), a kafka consumer, akka actors, and stream publishers/subscribers.
