@@ -42,7 +42,7 @@ object StreamMain extends App {
   consumer.subscribe(List("tweets")) //Kafka-Consumer listening from the topic
 
   // Source in this example is an ActorPublisher
-  val twitterSource = Source.actorPublisher[String](TwitterPublisher.props(consumer, 200))
+  val twitterSource = Source.actorPublisher[String](TwitterPublisher.props(consumer))
   // Sink just prints to console, ActorSubscriber is not used
   val consoleSink = Sink.foreach[String](tweet => {
     println(tweet)

@@ -55,11 +55,11 @@ case class Tweet(message: String)
 
 // Companion object
 object TwitterPublisher {
-  def props(consumer: KafkaConsumer[String, String], MAX_BUFFER_SIZE: Int): Props = Props(new TwitterPublisher(consumer, MAX_BUFFER_SIZE))
+  def props(consumer: KafkaConsumer[String, String]): Props = Props(new TwitterPublisher(consumer))
 }
 
 /* ActorPublisher for the Akka Stream */
-class TwitterPublisher(consumer: KafkaConsumer[String, String], MAX_BUFFER_SIZE: Int) extends ActorPublisher[String] {
+class TwitterPublisher(consumer: KafkaConsumer[String, String]) extends ActorPublisher[String] {
   var queue: mutable.Queue[String] = mutable.Queue()
   val POLL_TIME = 100 //time to poll in MS
 
@@ -82,14 +82,12 @@ class TwitterPublisher(consumer: KafkaConsumer[String, String], MAX_BUFFER_SIZE:
   }
 
   def pollTweets() = {
-    if (queue.length < MAX_BUFFER_SIZE ) {
-      val records = consumer.poll(POLL_TIME) // Kafka-Consumer data collection
-      for (record <- records) {
-        queue.enqueue(record.value) // Add more tweets to queue
-      }
-      if (queue.nonEmpty) {
-        println("New Backlog: " + queue) // Print out state of queue after new data is polled off kafka-consumer
-      }
+    val records = consumer.poll(POLL_TIME) // Kafka-Consumer data collection
+    for (record <- records) {
+      queue.enqueue(record.value) // Add more tweets to queue
+    }
+    if (queue.nonEmpty) {
+      println("New Backlog: " + queue) // Print out state of queue after new data is polled off kafka-consumer
     }
   }
 }

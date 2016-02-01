@@ -12,8 +12,6 @@ import com.twitter.hbc.httpclient.auth.{OAuth1, Authentication}
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.{ProducerRecord, KafkaProducer}
 import scala.collection.JavaConversions._
-import scala.collection.immutable.Queue
-import scala.collection.mutable
 
 // FIX COMMENTS BELOW
 
@@ -66,12 +64,19 @@ object TwitterMain extends App {
   consProps.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
   consProps.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
 
-  // Instantiating Kafka Producer
-  val producer = new KafkaProducer[String, String](prodProps)
+  // Instantiating Kafka Producer of raw twitter data
+  val rawTwitterProducer = new KafkaProducer[String, String](prodProps)
 
-  // Instantiating Kafka Consumer
-  val consumer = new KafkaConsumer[String, String](consProps)
-  consumer.subscribe(List("twitter-mailchimp-raw")) //Kafka-Consumer listening from the topic
+  // Instantiating Kafka Consumer of raw twitter data
+  val rawTwitterConsumer = new KafkaConsumer[String, String](consProps)
+  rawTwitterConsumer.subscribe(List("twitter-mailchimp-raw")) //Kafka-Consumer listening from the topic
+
+  // Instantiating Kafka Producer of transformed twitter data
+  val twitterProducer = new KafkaProducer[String, String](prodProps)
+
+  // Instantiating Kafka Consumer of transformed twitter data
+  val twitterConsumer = new KafkaConsumer[String, String](consProps)
+  twitterConsumer.subscribe(List("twitter-mailchimp")) //Kafka-Consumer listening from the topic
 
   /*
     ===============================
@@ -109,31 +114,36 @@ object TwitterMain extends App {
   hosebirdClient.connect()
 
   // Read data from Twitter HBC
-  while (!hosebirdClient.isDone()) {
-    val tweet = msgQueue.take()
-    // kafka producer publish tweet to kafka topic
-    val producerRecord = producer.send(new ProducerRecord("twitter-mailchimp-raw", tweet))
+  val hbcTwitterStream = new Thread {
+    override def run() = {
+      while (!hosebirdClient.isDone()) {
+        val tweet = msgQueue.take()
+        // kafka producer publish tweet to kafka topic
+        val producerRecord = producer.send(new ProducerRecord("twitter-mailchimp-raw", tweet))
+      }
+    }
   }
+  println("connecting to twitter-hbc-api...")
+  hbcTwitterStream.run()
   /*
    ===============================
    End of Connecting to Twitter
    ===============================
  */
 
-  
   // Source in this example is an ActorPublisher
-  val twitterSource = Source.actorPublisher[String](TwitterPublisher.props(consumer, 200))
-  // Sink just prints to console, ActorSubscriber is not used
+  val twitterPublisher = Source.actorPublisher[String](TwitterPublisher.props(rawTwitterConsumer))
+  /* Sink just prints to console, ActorSubscriber is not used
   val consoleSink = Sink.foreach[String](tweet => {
     println(tweet)
-    Thread.sleep(2000)
+    //Thread.sleep(2000)
   })
-
-  val runnableGraph = twitterSource
+  */
+  val runnableGraph = twitterPublisher
     // transform message to upper-case
     .map(msg => msg.toUpperCase)
     // transform message to reverse value
-    // .map(msg => msg.reverse)
+    .map(msg => msg.reverse)
     // connecting to the sink
     .to(consoleSink)
 
