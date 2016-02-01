@@ -28,9 +28,9 @@ object ActorMain extends App {
   val consumer = new KafkaConsumer[String, String](props)
   consumer.subscribe(List("email-message")) //Kafka-Consumer reading from the topic new-test
 
-  println("pipeline-demo starting...")
+  println("data-pipeline-demo starting...")
   while (true) {
-    val records = consumer.poll(100) // Kafka-Consumer data Collection
+    val records = consumer.poll(100) // Kafka-Consumer data collection
     for (record <- records) { //Kafka-Consumer data message
       emailActor.tell(EmailMessage(record.value), ActorRef.noSender)
     }

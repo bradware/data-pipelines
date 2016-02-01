@@ -1,7 +1,16 @@
-import akka.actor.{ Props, Actor }
+import akka.actor.FSM.Failure
+import akka.actor.{Props, Actor}
 import akka.stream.actor.ActorPublisher
+import akka.stream.actor.ActorPublisherMessage.{Cancel, Request}
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import scala.collection.JavaConversions._
+import scala.collection.mutable
+
+/*
+  ==============================
+  Akka Actor code below
+  ==============================
+*/
 
 // Data Structure to hold the message data
 case class EmailMessage(message: String)
@@ -35,16 +44,52 @@ class EmailPrinter extends Actor {
   }
 }
 
-/* Actor for the Akka Stream */
-class TwitterActor(consumer: KafkaConsumer[String, String]) extends ActorPublisher[String] {
-  consumer.subscribe(List("twitter-mailchimp")) //Kafka-Consumer reading from the topic new-test
+/*
+  ==============================
+  Akka Streams Code below
+  ==============================
+*/
 
-  /*
-    Read through Actor Publisher docs to see what to implement
-  */
+// Data Structure to hold the Tweet
+case class Tweet(message: String)
+
+// Companion object
+object TwitterPublisher {
+  def props(consumer: KafkaConsumer[String, String], MAX_BUFFER_SIZE: Int): Props = Props(new TwitterPublisher(consumer, MAX_BUFFER_SIZE))
 }
 
-object TwitterActor {
-  def props(consumer: KafkaConsumer[String, String]): Props = Props(new TwitterActor(consumer))
-}
+/* ActorPublisher for the Akka Stream */
+class TwitterPublisher(consumer: KafkaConsumer[String, String], MAX_BUFFER_SIZE: Int) extends ActorPublisher[String] {
+  var queue: mutable.Queue[String] = mutable.Queue()
+  val POLL_TIME = 100 //time to poll in MS
 
+  def receive: Actor.Receive = {
+    case Request(count) => publishTweets(count)
+    case Cancel => context.stop(self)
+  }
+
+  def publishTweets(count: Long) = {
+    var onNextCount = 0
+    while(onNextCount < count) {
+      if (queue.isEmpty) {
+        pollTweets()
+      }
+      if (queue.nonEmpty && onNextCount < count) {
+        onNext(queue.dequeue())
+        onNextCount += 1
+      }
+    }
+  }
+
+  def pollTweets() = {
+    if (queue.length < MAX_BUFFER_SIZE ) {
+      val records = consumer.poll(POLL_TIME) // Kafka-Consumer data collection
+      for (record <- records) {
+        queue.enqueue(record.value) // Add more tweets to queue
+      }
+      if (queue.nonEmpty) {
+        println("New Backlog: " + queue) // Print out state of queue after new data is polled off kafka-consumer
+      }
+    }
+  }
+}
