@@ -29,6 +29,21 @@ object StreamMain extends App {
   props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
   props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
 
+  /* Connect to Twitter Stream */
+
+  // Read data from twitter stream
+  // Make kafka producer
+  // Have kafka producer publish to kafka topic
+  
+
+
+
+
+
+
+  /* End of Twitter connect */
+
+
   val consumer = new KafkaConsumer[String, String](props)
   consumer.subscribe(List("tweets")) //Kafka-Consumer listening from the topic
 
