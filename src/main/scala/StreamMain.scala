@@ -5,21 +5,29 @@ import akka.stream.scaladsl.{Sink, Source}
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import scala.collection.JavaConversions._
 
-// PIPELINE DEMO OVERVIEW
-// 1. Pull messages from Kafka Consumer into Akka ActorPublisher
-// 2. Push Messages through an Akka Stream/Runnable Flow and undergo some transformation (Source)
-// 3. Subscriber needs to read the messages from the Akka Stream/Runnable Flow (Sink)
-// 4. Subscriber/Sink dumps the transformed to the console
-
-// WAYS TO IMPLEMENT THIS
-// FLOW: ActorPublisher(Source) ---> Stream ---> ActorSubscriber(Sink)
-// FLOW: ActorPublisher(Source) ---> Stream ---> Sink.actorRef(Sink)  ***What I'm using
-// FLOW: Source.actorRef(Source) ---> Stream ---> Sink.actorRef(Sink) // Built in simple source and sink
-// FLOW: Source.actorRef(Source) ---> Stream ---> ActorSubscriber(Sink)
+/*
+  =============================
+  PIPELINE DEMO OVERVIEW
+    1. Pull messages from Kafka Consumer into Akka ActorPublisher
+    2. Push Messages through an Akka Stream/Runnable Flow and undergo some transformation (Source)
+    3. Subscriber needs to read the messages from the Akka Stream/Runnable Flow (Sink)
+    4. Subscriber/Sink dumps the transformed to the console
+  =============================
+*/
+/*
+  =============================
+  IMPLEMENTATION
+    FLOW: ActorPublisher(Source) ---> Stream ---> ActorSubscriber(Sink)
+    FLOW: ActorPublisher(Source) ---> Stream ---> Sink.actorRef(Sink)  ***What I'm using
+    FLOW: Source.actorRef(Source) ---> Stream ---> Sink.actorRef(Sink) // Built in simple source and sink
+    FLOW: Source.actorRef(Source) ---> Stream ---> ActorSubscriber(Sink)
+  =============================
+*/
 object StreamMain extends App {
-  implicit val system = ActorSystem("Twitter-MailChimp")
+  implicit val system = ActorSystem("Tweets")
   implicit val materializer = ActorMaterializer()
 
+  // Setting up props for Kafka Consumer
   val props = new Properties()
   props.put("bootstrap.servers", "localhost:9092")
   props.put("group.id", "data-pipeline-demo-consumer")
@@ -29,21 +37,7 @@ object StreamMain extends App {
   props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
   props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
 
-  /* Connect to Twitter Stream */
-
-  // Read data from twitter stream
-  // Make kafka producer
-  // Have kafka producer publish to kafka topic
-  
-
-
-
-
-
-
-  /* End of Twitter connect */
-
-
+  // Instantiating Kafka Consumer
   val consumer = new KafkaConsumer[String, String](props)
   consumer.subscribe(List("tweets")) //Kafka-Consumer listening from the topic
 
