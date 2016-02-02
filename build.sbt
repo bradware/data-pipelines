@@ -7,5 +7,5 @@ libraryDependencies ++= Seq(
   "com.twitter" % "hbc-core" % "2.2.0",
   "org.slf4j" % "slf4j-simple" % "1.7.14",
   "org.json4s" %% "json4s-native" % "3.3.0",
-  "com.esotericsoftware" % "kryo" % "3.0.3"
+  "com.twitter" % "chill_2.10" % "0.7.2"
 )

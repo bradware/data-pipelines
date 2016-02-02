@@ -3,10 +3,10 @@ import java.util.{Locale, Properties, Date}
 import java.util.concurrent.{LinkedBlockingQueue, BlockingQueue}
 import akka.actor.{ActorRef, ActorSystem}
 import akka.stream.ActorMaterializer
-import akka.stream.actor.ActorPublisher
 import akka.stream.scaladsl.{Sink, Source}
+import com.twitter.chill.{KryoInstantiator, KryoPool}
 import com.twitter.hbc.ClientBuilder
-import com.twitter.hbc.core.endpoint.StatusesFilterEndpoint
+import com.twitter.hbc.core.endpoint.{StatusesSampleEndpoint, StatusesFilterEndpoint}
 import com.twitter.hbc.core.event.Event
 import com.twitter.hbc.core.processor.StringDelimitedProcessor
 import com.twitter.hbc.core.{Constants, HttpHosts}
@@ -15,6 +15,7 @@ import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.{ProducerRecord, KafkaProducer}
 import scala.collection.JavaConversions._
 import org.json4s._
+
 import org.json4s.native.JsonMethods._
 
 // FIX COMMENTS BELOW
@@ -61,7 +62,7 @@ object TwitterMain extends App {
   // Setting up props for Kafka Consumer
   val consProps = new Properties()
   consProps.put("bootstrap.servers", "localhost:9092")
-  consProps.put("group.id", "data-pipeline-demo-consumer")
+  consProps.put("group.id", "data-pipeline-demo2")
   consProps.put("enable.auto.commit", "true")
   consProps.put("auto.commit.interval.ms", "1000")
   consProps.put("session.timeout.ms", "30000")
@@ -73,14 +74,16 @@ object TwitterMain extends App {
 
   // Instantiating Kafka Consumer of raw twitter data
   val rawTwitterConsumer = new KafkaConsumer[String, String](consProps)
-  rawTwitterConsumer.subscribe(List("twitter-mailchimp-raw")) //Kafka-Consumer listening from the topic
+  // Kafka-Consumer listening from the raw topic
+  rawTwitterConsumer.subscribe(List("twitter-mailchimp-raw"))
 
   // Instantiating Kafka Producer of transformed twitter data
   val twitterProducer = new KafkaProducer[String, Array[Byte]](prodProps)
 
   // Instantiating Kafka Consumer of transformed twitter data
-  val twitterConsumer = new KafkaConsumer[String, String](consProps)
-  twitterConsumer.subscribe(List("twitter-mailchimp")) //Kafka-Consumer listening from the topic
+  val twitterConsumer = new KafkaConsumer[String, Array[Byte]](consProps)
+  //Kafka-Consumer listening from the transformed topic
+  twitterConsumer.subscribe(List("twitter-mailchimp"))
 
   /*
     ===============================
@@ -94,11 +97,11 @@ object TwitterMain extends App {
 
   // Declare the host you want to connect to, the endpoint, and authentication (basic auth or oauth)
   val hosebirdHosts = new HttpHosts(Constants.STREAM_HOST)
-  val hosebirdEndpoint = new StatusesFilterEndpoint()
+  val hosebirdEndpoint = new StatusesSampleEndpoint()
 
   // Filter out tweets by 'mailchimp'
   val terms = List("mailchimp")
-  hosebirdEndpoint.trackTerms(terms)
+  //hosebirdEndpoint.trackTerms(terms) *****LOOK HERE
 
   // Pass in Auth for HBC Stream
   val hosebirdAuth = new OAuth1(CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, SECRET_TOKEN)
@@ -121,9 +124,13 @@ object TwitterMain extends App {
   val hbcTwitterStream = new Thread {
     override def run() = {
       while (!hosebirdClient.isDone()) {
-        val tweet = msgQueue.take()
+        println("before take") // *****LOOK HERE
+        val tweet: String = msgQueue.take()
+        println("after take") // *****LOOK HERE
+
         // kafka producer publish tweet to kafka topic
         rawTwitterProducer.send(new ProducerRecord("twitter-mailchimp-raw", tweet))
+        println("after producer") // *****LOOK HERE
       }
     }
   }
@@ -140,40 +147,61 @@ object TwitterMain extends App {
   // ActorSubscriber is the sink that pushes back into the Kafka Producer
   val twitterSubscriber = Sink.actorSubscriber[Array[Byte]](TwitterSubscriber.props(twitterProducer))
 
+  // Akka Stream/Flow: ActorPublisher ---> raw JSON ---> Tweet Struct ---> Kryo Array[Byte]  ---> ActorSubscriber
+  val firstStream = twitterPublisher
+    .to(Sink.foreach(println)) // *****LOOK HERE DELETE
+    //.map(msg => parse(msg)) *****LOOK HERE
+    //.map(json => extractJSONFields(json)) *****LOOK HERE
+    //.map(tweet => serializeTweet(tweet)) *****LOOK HERE
+    //.to(twitterSubscriber)
+  println("transforming json tweets in akka-stream...")
+  firstStream.run()
 
-  val runnableGraph = twitterPublisher
-    .map(msg => parse(msg))
-    .map(json => extractJSONFields(json))
-    .map(tweet => serializeTweet(tweet))
-    .to(twitterSubscriber)
+  /*
+  // Source in this example is an ActorPublisher
+  val tweetPublisher = Source.actorPublisher[Array[Byte]](TwitterPublisher.props(twitterConsumer))
+
+  val finalStream = tweetPublisher
+    .map(bytes => deserializeTweet(bytes))
+    .to(Sink.foreach(println))
   println("data-pipeline-demo starting...")
-  runnableGraph.run()
+  finalStream.run()
+  */
+  // Serialize the Tweet object into a byte array
+  def serializeTweet(tweet: Tweet): Array[Byte] = {
+    val kryoPool = KryoPool.withByteArrayOutputStream(10, new KryoInstantiator());
+    kryoPool.toBytesWithClass(tweet);
+  }
 
-}
+  // Deserialize the byte array into a Tweet object
+  def deserializeTweet(byteArray: Array[Byte]): Tweet = {
+    val kryoPool = KryoPool.withByteArrayOutputStream(10, new KryoInstantiator());
+    kryoPool.fromBytes(byteArray).asInstanceOf[Tweet];
+  }
 
-// TODO
-def serializeTweet(tweet: Tweet): Array[Byte] = {
-  Array.empty
-}
+  // Constructing the Tweet object from raw Tweet JSON
+  def extractJSONFields(json: JValue) = {
+    implicit val formats = DefaultFormats
+    // getting all of the fields for the TweetStruct
+    val text = (json \ "text").extract[String]
+    val created_at = formatTwitterDate((json \ "created_at").extract[String])
+    val user_name = ((json \ "user") \ "name").extract[String]
+    val user_screen_name = ((json \ "user") \ "screen_name").extract[String]
+    val user_location = ((json \ "user") \ "location").extract[String]
+    val user_followers_count = ((json \ "user") \ "followers_count").extract[String]
 
-def extractJSONFields(json: JValue) = {
-  // getting all of the fields for the TweetStruct
-  val text = (json \ "text").extract[String]
-  val created_at = formatTwitterDate((json \ "created_at").extract[String])
-  val user_name = ((json \ "user") \ "name").extract[String]
-  val user_screen_name = ((json \ "user") \ "screen_name").extract[String]
-  val user_location = ((json \ "user") \ "location").extract[String]
-  val user_followers_count = ((json \ "user") \ "followers_count").extract[String]
+    // instantiating a TweetStruct
+    val tweetStruct = new Tweet(text, created_at, user_name, user_screen_name, user_location, user_followers_count)
+    tweetStruct
+  }
 
-  // instantiating a TweetStruct
-  val tweetStruct = new Tweet(text, created_at, user_name, user_screen_name, user_location, user_followers_count)
-  tweetStruct
-}
+  // Helper method to format date of raw Twitter date
+  def formatTwitterDate(date: String) = {
+    val TWITTER_FORMAT = "EEE, dd MMM yyyy HH:mm:ss Z"
+    val sf = new SimpleDateFormat(TWITTER_FORMAT, Locale.ENGLISH)
+    sf.setLenient(true)
+    sf.parse(date)
+  }
 
-def formatTwitterDate(date: String) = {
-  val TWITTER_FORMAT = "EEE, dd MMM yyyy HH:mm:ss Z"
-  val sf = new SimpleDateFormat(TWITTER_FORMAT, Locale.ENGLISH)
-  sf.setLenient(true)
-  sf.parse(date)
 }
 

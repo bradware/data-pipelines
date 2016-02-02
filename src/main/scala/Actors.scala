@@ -1,11 +1,9 @@
-import java.sql.Timestamp
-
-import akka.actor.FSM.Failure
 import akka.actor.{Props, Actor}
-import akka.stream.actor.{ActorSubscriber, ActorPublisher}
+import akka.stream.actor.ActorSubscriberMessage.OnNext
+import akka.stream.actor.{WatermarkRequestStrategy, ActorSubscriber, ActorPublisher}
 import akka.stream.actor.ActorPublisherMessage.{Cancel, Request}
 import org.apache.kafka.clients.consumer.KafkaConsumer
-import org.apache.kafka.clients.producer.KafkaProducer
+import org.apache.kafka.clients.producer.{ProducerRecord, KafkaProducer}
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 
@@ -69,12 +67,12 @@ case class Tweet(text: String, created_at: java.util.Date, user_name: String,
 
 // Companion object
 object TwitterPublisher {
-  def props(consumer: KafkaConsumer[String, String]): Props = Props(new TwitterPublisher(consumer))
+  def props[K, V](consumer: KafkaConsumer[K, V]): Props = Props(new TwitterPublisher(consumer))
 }
 
 /* ActorPublisher for the Akka Stream */
-class TwitterPublisher(consumer: KafkaConsumer[String, String]) extends ActorPublisher[String] {
-  var queue: mutable.Queue[String] = mutable.Queue()
+class TwitterPublisher[K, V](consumer: KafkaConsumer[K, V]) extends ActorPublisher[V] {
+  var queue: mutable.Queue[V] = mutable.Queue()
   val POLL_TIME = 100 //time to poll in MS
 
   def receive: Actor.Receive = {
@@ -83,10 +81,12 @@ class TwitterPublisher(consumer: KafkaConsumer[String, String]) extends ActorPub
   }
 
   def publishTweets(count: Long) = {
+    println("requested count: " + count)
     var onNextCount = 0
     while(onNextCount < count) {
       if (queue.isEmpty) {
         pollTweets()
+        println("pollTweets just called")
       }
       if (queue.nonEmpty && onNextCount < count) {
         onNext(queue.dequeue())
@@ -111,8 +111,16 @@ object TwitterSubscriber {
   def props(producer: KafkaProducer[String, Array[Byte]]): Props = Props(new TwitterSubscriber(producer))
 }
 
-/* ActorPublisher for the Akka Stream */
+/* ActorSubscriber for the Akka Stream */
 class TwitterSubscriber(producer: KafkaProducer[String, Array[Byte]]) extends ActorSubscriber {
-  val POLL_TIME = 100 //time to poll in MS
+  //var queue: mutable.Queue[Array[Byte]] = mutable.Queue()
+  //val MAX_SIZE = 100
+
+  override val requestStrategy = new WatermarkRequestStrategy(100)
+
+  def receive = {
+    case OnNext(bytes: Array[Byte]) => producer.send(new ProducerRecord("twitter-mailchimp", bytes))
+    case Cancel => context.stop(self)
+  }
 
 }
