@@ -1,7 +1,9 @@
-import java.util.Properties
+import java.text.SimpleDateFormat
+import java.util.{Locale, Properties, Date}
 import java.util.concurrent.{LinkedBlockingQueue, BlockingQueue}
-import akka.actor.{ActorSystem}
+import akka.actor.{ActorRef, ActorSystem}
 import akka.stream.ActorMaterializer
+import akka.stream.actor.ActorPublisher
 import akka.stream.scaladsl.{Sink, Source}
 import com.twitter.hbc.ClientBuilder
 import com.twitter.hbc.core.endpoint.StatusesFilterEndpoint
@@ -12,6 +14,8 @@ import com.twitter.hbc.httpclient.auth.{OAuth1, Authentication}
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.{ProducerRecord, KafkaProducer}
 import scala.collection.JavaConversions._
+import org.json4s._
+import org.json4s.native.JsonMethods._
 
 // FIX COMMENTS BELOW
 
@@ -72,7 +76,7 @@ object TwitterMain extends App {
   rawTwitterConsumer.subscribe(List("twitter-mailchimp-raw")) //Kafka-Consumer listening from the topic
 
   // Instantiating Kafka Producer of transformed twitter data
-  val twitterProducer = new KafkaProducer[String, String](prodProps)
+  val twitterProducer = new KafkaProducer[String, Array[Byte]](prodProps)
 
   // Instantiating Kafka Consumer of transformed twitter data
   val twitterConsumer = new KafkaConsumer[String, String](consProps)
@@ -119,7 +123,7 @@ object TwitterMain extends App {
       while (!hosebirdClient.isDone()) {
         val tweet = msgQueue.take()
         // kafka producer publish tweet to kafka topic
-        val producerRecord = producer.send(new ProducerRecord("twitter-mailchimp-raw", tweet))
+        rawTwitterProducer.send(new ProducerRecord("twitter-mailchimp-raw", tweet))
       }
     }
   }
@@ -133,20 +137,43 @@ object TwitterMain extends App {
 
   // Source in this example is an ActorPublisher
   val twitterPublisher = Source.actorPublisher[String](TwitterPublisher.props(rawTwitterConsumer))
-  /* Sink just prints to console, ActorSubscriber is not used
-  val consoleSink = Sink.foreach[String](tweet => {
-    println(tweet)
-    //Thread.sleep(2000)
-  })
-  */
-  val runnableGraph = twitterPublisher
-    // transform message to upper-case
-    .map(msg => msg.toUpperCase)
-    // transform message to reverse value
-    .map(msg => msg.reverse)
-    // connecting to the sink
-    .to(consoleSink)
+  // ActorSubscriber is the sink that pushes back into the Kafka Producer
+  val twitterSubscriber = Sink.actorSubscriber[Array[Byte]](TwitterSubscriber.props(twitterProducer))
 
+
+  val runnableGraph = twitterPublisher
+    .map(msg => parse(msg))
+    .map(json => extractJSONFields(json))
+    .map(tweet => serializeTweet(tweet))
+    .to(twitterSubscriber)
   println("data-pipeline-demo starting...")
   runnableGraph.run()
+
 }
+
+// TODO
+def serializeTweet(tweet: Tweet): Array[Byte] = {
+  Array.empty
+}
+
+def extractJSONFields(json: JValue) = {
+  // getting all of the fields for the TweetStruct
+  val text = (json \ "text").extract[String]
+  val created_at = formatTwitterDate((json \ "created_at").extract[String])
+  val user_name = ((json \ "user") \ "name").extract[String]
+  val user_screen_name = ((json \ "user") \ "screen_name").extract[String]
+  val user_location = ((json \ "user") \ "location").extract[String]
+  val user_followers_count = ((json \ "user") \ "followers_count").extract[String]
+
+  // instantiating a TweetStruct
+  val tweetStruct = new Tweet(text, created_at, user_name, user_screen_name, user_location, user_followers_count)
+  tweetStruct
+}
+
+def formatTwitterDate(date: String) = {
+  val TWITTER_FORMAT = "EEE, dd MMM yyyy HH:mm:ss Z"
+  val sf = new SimpleDateFormat(TWITTER_FORMAT, Locale.ENGLISH)
+  sf.setLenient(true)
+  sf.parse(date)
+}
+

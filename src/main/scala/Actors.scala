@@ -1,8 +1,11 @@
+import java.sql.Timestamp
+
 import akka.actor.FSM.Failure
 import akka.actor.{Props, Actor}
-import akka.stream.actor.ActorPublisher
+import akka.stream.actor.{ActorSubscriber, ActorPublisher}
 import akka.stream.actor.ActorPublisherMessage.{Cancel, Request}
 import org.apache.kafka.clients.consumer.KafkaConsumer
+import org.apache.kafka.clients.producer.KafkaProducer
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 
@@ -50,8 +53,19 @@ class EmailPrinter extends Actor {
   ==============================
 */
 
-// Data Structure to hold the Tweet
-case class Tweet(message: String)
+// Data Structure to hold the Tweet message
+case class SimpleTweet(message: String)
+
+// Data Structure to encapsulate information about Tweet object for transformed JSON tweet objects
+case class Tweet(text: String, created_at: java.util.Date, user_name: String,
+                 user_screen_name: String, user_location: String, user_followers_count: String) {
+  val tweet = text
+  val createdAt = created_at
+  val userName = user_name
+  val userHandle = user_screen_name
+  val userLocation = user_location
+  val followerCount = user_followers_count
+}
 
 // Companion object
 object TwitterPublisher {
@@ -90,4 +104,15 @@ class TwitterPublisher(consumer: KafkaConsumer[String, String]) extends ActorPub
       println("New Backlog: " + queue) // Print out state of queue after new data is polled off kafka-consumer
     }
   }
+}
+
+// Companion object
+object TwitterSubscriber {
+  def props(producer: KafkaProducer[String, Array[Byte]]): Props = Props(new TwitterSubscriber(producer))
+}
+
+/* ActorPublisher for the Akka Stream */
+class TwitterSubscriber(producer: KafkaProducer[String, Array[Byte]]) extends ActorSubscriber {
+  val POLL_TIME = 100 //time to poll in MS
+
 }
