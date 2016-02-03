@@ -13,24 +13,22 @@ import scala.collection.JavaConversions._
     3. Subscriber needs to read the messages from the Akka Stream/Runnable Flow (Sink)
     4. Subscriber/Sink dumps the transformed to the console
   =============================
-*/
-/*
   =============================
-  IMPLEMENTATION
+  OPTIONS FOR IMPLEMENTATION
     FLOW: ActorPublisher(Source) ---> Stream ---> ActorSubscriber(Sink)
-    FLOW: ActorPublisher(Source) ---> Stream ---> Sink.actorRef(Sink)  ***What I'm using
+    FLOW: ActorPublisher(Source) ---> Stream ---> Sink.actorRef(Sink)  *** IN USE BELOW
     FLOW: Source.actorRef(Source) ---> Stream ---> Sink.actorRef(Sink) // Built in simple source and sink
     FLOW: Source.actorRef(Source) ---> Stream ---> ActorSubscriber(Sink)
   =============================
 */
 object StreamMain extends App {
-  implicit val system = ActorSystem("Tweets")
+  implicit val system = ActorSystem("SimpleTweets")
   implicit val materializer = ActorMaterializer()
 
   // Setting up props for Kafka Consumer
   val props = new Properties()
   props.put("bootstrap.servers", "localhost:9092")
-  props.put("group.id", "data-pipeline-demo-consumer")
+  props.put("group.id", "simple-tweets-consumer")
   props.put("enable.auto.commit", "true")
   props.put("auto.commit.interval.ms", "1000")
   props.put("session.timeout.ms", "30000")
@@ -39,24 +37,21 @@ object StreamMain extends App {
 
   // Instantiating Kafka Consumer
   val consumer = new KafkaConsumer[String, String](props)
-  consumer.subscribe(List("tweets")) //Kafka-Consumer listening from the topic
+  consumer.subscribe(List("simple-tweets")) //Kafka-Consumer listening from the topic
 
   // Source in this example is an ActorPublisher
   val twitterSource = Source.actorPublisher[String](TwitterPublisher.props(consumer))
   // Sink just prints to console, ActorSubscriber is not used
   val consoleSink = Sink.foreach[String](tweet => {
     println(tweet)
-    Thread.sleep(2000)
+    Thread.sleep(2000) // simulate how akka-streams handles Backpressure
   })
 
-  val runnableGraph = twitterSource
+  val stream = twitterSource
     // transform message to upper-case
     .map(msg => msg.toUpperCase)
-    // transform message to reverse value
-    // .map(msg => msg.reverse)
     // connecting to the sink
     .to(consoleSink)
-
   println("data-pipeline-demo starting...")
-  runnableGraph.run()
+  stream.run()
 }

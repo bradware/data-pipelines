@@ -12,7 +12,6 @@ import scala.collection.mutable
   Akka Actor code below
   ==============================
 */
-
 // Data Structure to hold the message data
 case class EmailMessage(message: String)
 
@@ -54,7 +53,7 @@ class EmailPrinter extends Actor {
 // Data Structure to hold the Tweet message
 case class SimpleTweet(message: String)
 
-// Data Structure to encapsulate information about Tweet object for transformed JSON tweet objects
+// Data Structure to encapsulate information about transformed Tweet object from twitter-hbc-stream json api
 case class Tweet(text: String, created_at: java.util.Date, user_name: String,
                  user_screen_name: String, user_location: String, user_followers_count: String) {
   val tweet = text
@@ -73,11 +72,11 @@ object TwitterPublisher {
 /* ActorPublisher for the Akka Stream */
 class TwitterPublisher[K, V](consumer: KafkaConsumer[K, V]) extends ActorPublisher[V] {
   var queue: mutable.Queue[V] = mutable.Queue()
-  val POLL_TIME = 100 //time to poll in MS
+  val POLL_TIME = 100 // time in MS
 
   def receive: Actor.Receive = {
     case Request(count) => publishTweets(count)
-    case Cancel => context.stop(self)
+    case Cancel => println("stopping: " + context.stop(self))
   }
 
   def publishTweets(count: Long) = {
@@ -86,7 +85,7 @@ class TwitterPublisher[K, V](consumer: KafkaConsumer[K, V]) extends ActorPublish
     while(onNextCount < count) {
       if (queue.isEmpty) {
         pollTweets()
-        println("pollTweets just called")
+        //println("pollTweets just called")
       }
       if (queue.nonEmpty && onNextCount < count) {
         onNext(queue.dequeue())
@@ -99,6 +98,7 @@ class TwitterPublisher[K, V](consumer: KafkaConsumer[K, V]) extends ActorPublish
     val records = consumer.poll(POLL_TIME) // Kafka-Consumer data collection
     for (record <- records) {
       queue.enqueue(record.value) // Add more tweets to queue
+      println(record.value)
     }
     if (queue.nonEmpty) {
       println("New Backlog: " + queue) // Print out state of queue after new data is polled off kafka-consumer
@@ -115,12 +115,10 @@ object TwitterSubscriber {
 class TwitterSubscriber(producer: KafkaProducer[String, Array[Byte]]) extends ActorSubscriber {
   //var queue: mutable.Queue[Array[Byte]] = mutable.Queue()
   //val MAX_SIZE = 100
-
   override val requestStrategy = new WatermarkRequestStrategy(100)
 
   def receive = {
     case OnNext(bytes: Array[Byte]) => producer.send(new ProducerRecord("twitter-mailchimp", bytes))
     case Cancel => context.stop(self)
   }
-
 }
