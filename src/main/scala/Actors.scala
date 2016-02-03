@@ -76,16 +76,14 @@ class TwitterPublisher[K, V](consumer: KafkaConsumer[K, V]) extends ActorPublish
 
   def receive: Actor.Receive = {
     case Request(count) => publishTweets(count)
-    case Cancel => println("stopping: " + context.stop(self))
+    case Cancel => println("TwitterPublisher Canceled: " + context.stop(self))
   }
 
   def publishTweets(count: Long) = {
-    println("requested count: " + count)
     var onNextCount = 0
     while(onNextCount < count) {
       if (queue.isEmpty) {
         pollTweets()
-        //println("pollTweets just called")
       }
       if (queue.nonEmpty && onNextCount < count) {
         onNext(queue.dequeue())
@@ -98,11 +96,13 @@ class TwitterPublisher[K, V](consumer: KafkaConsumer[K, V]) extends ActorPublish
     val records = consumer.poll(POLL_TIME) // Kafka-Consumer data collection
     for (record <- records) {
       queue.enqueue(record.value) // Add more tweets to queue
-      println(record.value)
+      //println(record.value) **THIS IS PRINTING ALL THE VALUES
     }
+    /*
     if (queue.nonEmpty) {
       println("New Backlog: " + queue) // Print out state of queue after new data is polled off kafka-consumer
     }
+    */
   }
 }
 

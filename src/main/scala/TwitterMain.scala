@@ -15,6 +15,7 @@ import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.{ProducerRecord, KafkaProducer}
 import scala.collection.JavaConversions._
 import org.json4s._
+import org.json4s.native.JsonMethods._
 
 // FIX COMMENTS BELOW
 
@@ -26,7 +27,6 @@ import org.json4s._
     3. Subscriber needs to read the messages from the Akka Stream/Runnable Flow (Sink)
     4. Subscriber/Sink dumps the transformed to the console
   =============================
-
   =============================
   IMPLEMENTATION
     FLOW: ActorPublisher(Source) ---> Stream ---> ActorSubscriber(Sink)
@@ -76,30 +76,29 @@ object TwitterMain extends App {
   rawTwitterConsumer.subscribe(List("twitter-mailchimp-raw"))
 
   // Instantiating Kafka Producer of transformed twitter data
-  //val twitterProducer = new KafkaProducer[String, Array[Byte]](prodProps)
+  val twitterProducer = new KafkaProducer[String, Array[Byte]](prodProps)
 
   // Instantiating Kafka Consumer of transformed twitter data
-  //Kafka-Consumer listening from the transformed topic
-  //val twitterConsumer = new KafkaConsumer[String, Array[Byte]](consProps)
-  //twitterConsumer.subscribe(List("twitter-mailchimp"))
+  // Kafka-Consumer listening from the transformed topic
+  val twitterConsumer = new KafkaConsumer[String, Array[Byte]](consProps)
+  twitterConsumer.subscribe(List("twitter-mailchimp"))
 
   /*
     ===============================
     Connecting to Twitter Stream
     ===============================
   */
-
   // Set up your blocking queues: Be sure to size these properly based on expected TPS of your stream
   val msgQueue = new LinkedBlockingQueue[String](100000)
   val eventQueue = new LinkedBlockingQueue[Event](1000)
 
   // Declare the host you want to connect to, the endpoint, and authentication (basic auth or oauth)
   val hosebirdHosts = new HttpHosts(Constants.STREAM_HOST)
-  val hosebirdEndpoint = new StatusesSampleEndpoint() // Change back to FilterEndpoint
+  val hosebirdEndpoint = new StatusesFilterEndpoint()
 
   // Filter out tweets by 'mailchimp'
   val terms = List("mailchimp")
-  //hosebirdEndpoint.trackTerms(terms) *****LOOK HERE
+  hosebirdEndpoint.trackTerms(terms)
 
   // Pass in Auth for HBC Stream
   val hosebirdAuth = new OAuth1(CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, SECRET_TOKEN)
@@ -122,18 +121,14 @@ object TwitterMain extends App {
   val hbcTwitterStream = new Thread {
     override def run() = {
       while (!hosebirdClient.isDone()) {
-        //println("before take") // *****LOOK HERE
         val tweet: String = msgQueue.take()
-        //println("after take") // *****LOOK HERE
-
         // kafka producer publish tweet to kafka topic
         rawTwitterProducer.send(new ProducerRecord("twitter-mailchimp-raw", tweet))
-        //println("after producer") // *****LOOK HERE
       }
     }
   }
   println("connecting to twitter-hbc-api...")
-  hbcTwitterStream.run()
+  hbcTwitterStream.start() // starts the thread which invokes run()
   /*
    ===============================
    End of Connecting to Twitter
@@ -143,29 +138,26 @@ object TwitterMain extends App {
   // Source in this example is an ActorPublisher
   val twitterPublisher = Source.actorPublisher[String](TwitterPublisher.props(rawTwitterConsumer))
   // ActorSubscriber is the sink that pushes back into the Kafka Producer
-  //val twitterSubscriber = Sink.actorSubscriber[Array[Byte]](TwitterSubscriber.props(twitterProducer))
+  val twitterSubscriber = Sink.actorSubscriber[Array[Byte]](TwitterSubscriber.props(twitterProducer))
 
   // Akka Stream/Flow: ActorPublisher ---> raw JSON ---> Tweet Struct ---> Kryo Array[Byte]  ---> ActorSubscriber
   val firstStream = twitterPublisher
-    .map(msg => msg.toUpperCase)
-    .to(Sink.foreach[String](tweet => {println(tweet)})) // *****LOOK HERE DELETE
-    //.map(msg => parse(msg)) **  ***LOOK HERE
-    //.map(json => extractJSONFields(json)) *****LOOK HERE
-    //.map(tweet => serializeTweet(tweet)) *****LOOK HERE
-    //.to(twitterSubscriber)
+    .map(msg => parse(msg))
+    .map(json => extractJSONFields(json))
+    .map(tweet => serializeTweet(tweet))
+    .to(twitterSubscriber)
   println("transforming json tweets in akka-stream...")
   firstStream.run()
 
-  /*
   // Source in this example is an ActorPublisher
   val tweetPublisher = Source.actorPublisher[Array[Byte]](TwitterPublisher.props(twitterConsumer))
 
   val finalStream = tweetPublisher
     .map(bytes => deserializeTweet(bytes))
-    .to(Sink.foreach(println))
-  println("data-pipeline-demo starting...")
+    .to(Sink.foreach(tweet => {println("Final Data Format: " + tweet)}))
+  println("twitter-mailchimp data-pipeline starting...")
   finalStream.run()
-  */
+
   // Serialize the Tweet object into a byte array
   def serializeTweet(tweet: Tweet): Array[Byte] = {
     val kryoPool = KryoPool.withByteArrayOutputStream(10, new KryoInstantiator());
@@ -201,5 +193,4 @@ object TwitterMain extends App {
     sf.setLenient(true)
     sf.parse(date)
   }
-
 }
