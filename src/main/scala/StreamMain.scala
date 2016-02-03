@@ -52,6 +52,6 @@ object StreamMain extends App {
     .map(msg => msg.toUpperCase)
     // connecting to the sink
     .to(consoleSink)
-  println("data-pipeline-demo starting...")
+  println("simple-tweets data-pipeline starting...")
   stream.run()
 }
