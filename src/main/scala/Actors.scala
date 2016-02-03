@@ -76,7 +76,7 @@ class TwitterPublisher[K, V](consumer: KafkaConsumer[K, V]) extends ActorPublish
 
   def receive: Actor.Receive = {
     case Request(count) => publishTweets(count)
-    case Cancel => println("TwitterPublisher Canceled: " + context.stop(self))
+    case Cancel => context.stop(self)
   }
 
   def publishTweets(count: Long) = {
@@ -86,7 +86,9 @@ class TwitterPublisher[K, V](consumer: KafkaConsumer[K, V]) extends ActorPublish
         pollTweets()
       }
       if (queue.nonEmpty && onNextCount < count) {
-        onNext(queue.dequeue())
+        val record = queue.dequeue()
+        OnNext(record)
+        println(record)
         onNextCount += 1
       }
     }
@@ -96,7 +98,6 @@ class TwitterPublisher[K, V](consumer: KafkaConsumer[K, V]) extends ActorPublish
     val records = consumer.poll(POLL_TIME) // Kafka-Consumer data collection
     for (record <- records) {
       queue.enqueue(record.value) // Add more tweets to queue
-      //println(record.value) **THIS IS PRINTING ALL THE VALUES
     }
     /*
     if (queue.nonEmpty) {
@@ -118,7 +119,7 @@ class TwitterSubscriber(producer: KafkaProducer[String, Array[Byte]]) extends Ac
   override val requestStrategy = new WatermarkRequestStrategy(100)
 
   def receive = {
-    case OnNext(bytes: Array[Byte]) => producer.send(new ProducerRecord("twitter-mailchimp", bytes))
+    case OnNext(bytes: Array[Byte]) => producer.send(new ProducerRecord("twitter-mailchimp2", bytes))
     case Cancel => context.stop(self)
   }
 }
