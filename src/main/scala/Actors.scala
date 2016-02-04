@@ -77,25 +77,29 @@ class TweetPublisher[K, V](consumer: KafkaConsumer[K, V]) extends ActorPublisher
   def receive = {
     case Request(cnt) =>
       println("received request from TweetSubscriber")
-      publishTweets()
+      publishTweets(cnt)
     case Cancel =>
       println("cancelled message received from TweetSubscriber -- STOPPING")
       context.stop(self)
     case _ =>
+      println("received some other message")
   }
 
-  def publishTweets() = {
+  def publishTweets(count: Long) = {
+    var i = 0
     println("Total Demand issued by ActorSubscriber: " + totalDemand)
-    while(isActive && totalDemand > 0) {
+    while (i < count) {
       if (queue.isEmpty) {
         pollTweets()
       }
       if (queue.nonEmpty) {
         val record = queue.dequeue()
         OnNext(record) // Push the new data to the ActorSubscriber
-        println(record)
+        println(s"publishTweets: ${record}")
+        i += 1
       }
     }
+    println("Exiting publishTweets...")
   }
 
   def pollTweets() = {

@@ -1,6 +1,7 @@
 import java.util.Properties
 import akka.actor.{ActorSystem}
 import akka.stream.ActorMaterializer
+import akka.stream.Attributes
 import akka.stream.scaladsl.{Flow, Sink, Source}
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import scala.collection.JavaConversions._
@@ -50,7 +51,7 @@ object StreamMain extends App {
   println("simple-tweets stream starting...")
   val stream = Flow[String]
     // transform message to upper-case
-    .map(msg => msg.toUpperCase)
+    .map(msg => {println("mapping ${msg}"); msg.toUpperCase})
     // connecting to the sink
     .to(consoleSink)
     .runWith(simpleTweetSource)
