@@ -1,7 +1,7 @@
 import java.util.Properties
 import akka.actor.{ActorSystem}
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.{Sink, Source}
+import akka.stream.scaladsl.{Flow, Sink, Source}
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import scala.collection.JavaConversions._
 
@@ -37,21 +37,21 @@ object StreamMain extends App {
 
   // Instantiating Kafka Consumer
   val consumer = new KafkaConsumer[String, String](props)
-  consumer.subscribe(List("simple-tweets")) //Kafka-Consumer listening from the topic
+  consumer.subscribe(List("simple-tweets")) // Kafka-Consumer listening from the topic
 
   // Source in this example is an ActorPublisher
-  val twitterSource = Source.actorPublisher[String](TwitterPublisher.props(consumer))
+  val simpleTweetSource = Source.actorPublisher[String](TweetPublisher.props(consumer))
   // Sink just prints to console, ActorSubscriber is not used
   val consoleSink = Sink.foreach[String](tweet => {
     println(tweet)
-    Thread.sleep(2000) // simulate how akka-streams handles Backpressure
+    //Thread.sleep(2000) // simulate how akka-streams handles Backpressure
   })
 
-  val stream = twitterSource
+  println("simple-tweets stream starting...")
+  val stream = Flow[String]
     // transform message to upper-case
     .map(msg => msg.toUpperCase)
     // connecting to the sink
     .to(consoleSink)
-  println("simple-tweets data-pipeline starting...")
-  stream.run()
+    .runWith(simpleTweetSource)
 }
