@@ -6,8 +6,7 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Flow, Sink, Source}
 import com.twitter.chill.{Kryo, KryoInstantiator, KryoPool}
 import com.twitter.hbc.ClientBuilder
-import com.twitter.hbc.core.Constants.FilterLevel
-import com.twitter.hbc.core.endpoint.{StatusesFilterEndpoint}
+import com.twitter.hbc.core.endpoint.StatusesFilterEndpoint
 import com.twitter.hbc.core.event.Event
 import com.twitter.hbc.core.processor.StringDelimitedProcessor
 import com.twitter.hbc.core.{Constants, HttpHosts}
@@ -102,7 +101,6 @@ object TwitterMain extends App {
 
   // Filter out tweets
   val terms = List("mailchimp", "MailChimp", "Mailchimp")
-  hosebirdEndpoint.filterLevel(FilterLevel.Medium)
   hosebirdEndpoint.trackTerms(terms)
 
   // Pass in Auth for HBC Stream
