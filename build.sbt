@@ -2,6 +2,7 @@ sbtVersion := "0.13.7"
 scalaVersion := "2.11.7"
 
 libraryDependencies ++= Seq(
+  "org.scalatest" % "scalatest_2.11" % "2.2.1",
   "org.apache.kafka" % "kafka-clients" % "0.9.0.0",
   "com.typesafe.akka" %% "akka-stream-experimental" % "2.0.2",
   "com.twitter" % "hbc-core" % "2.2.0",

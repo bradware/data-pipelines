@@ -1,8 +1,6 @@
-import java.math.BigInteger
 import java.util.Properties
 import akka.actor.{ActorSystem}
 import akka.stream.ActorMaterializer
-import akka.stream.Attributes
 import akka.stream.scaladsl.{Flow, Sink, Source}
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import scala.collection.JavaConversions._
@@ -27,22 +25,6 @@ object StreamMain extends App {
   implicit val system = ActorSystem("SimpleTweets")
   implicit val materializer = ActorMaterializer()
 
-  /*
-  // Setting up props for Kafka Consumer
-  val props = new Properties()
-  props.put("bootstrap.servers", "localhost:9092")
-  props.put("group.id", "simple-tweets-consumer2")
-  props.put("enable.auto.commit", "true")
-  props.put("auto.commit.interval.ms", "1000")
-  props.put("session.timeout.ms", "30000")
-  props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
-  props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
-
-  // Instantiating Kafka Consumer
-  val consumer = new KafkaConsumer[String, BigInteger](props)
-  consumer.subscribe(List("fibonacci")) // Kafka-Consumer listening from the topic
-  */
-
   // Setting up props for Kafka Consumer
   val props = new Properties()
   props.put("bootstrap.servers", "localhost:9092")
@@ -56,17 +38,19 @@ object StreamMain extends App {
   consumer.subscribe(List("simple-tweets")) // Kafka-Consumer listening from the topic
 
   // Source in this example is an ActorPublisher
-  val simpleTweetSource = Source.actorPublisher[SimpleTweet](TweetPublisher.props(consumer))
+  val simpleTweetSource = Source.actorPublisher[String](TweetPublisher.props(consumer))
   // Sink just prints to console, ActorSubscriber is not used
-  val consoleSink = Sink.foreach[SimpleTweet](message => {
-    println("CONSOLE SINK: " + message)
-    //Thread.sleep(1000) // simulate how akka-streams handles Backpressure
+  val consoleSink = Sink.foreach[Tweet](tweet => {
+    println("CONSOLE SINK: " + tweet.text)
+    Thread.sleep(1000) // simulate how akka-streams handles Backpressure
   })
 
   println("simple-tweets stream starting...")
-  val stream = Flow[SimpleTweet]
-    // transform message to upper-case
-    //.map(tweet => tweet.message.toUpperCase)
+  val stream = Flow[String]
+    // transform text to upper-case
+    .map(text => text.toUpperCase)
+    // transforming text to SimpleTweet
+    .map(text => new SimpleTweet(text))
     // connecting to the sink
     .to(consoleSink)
     .runWith(simpleTweetSource)
