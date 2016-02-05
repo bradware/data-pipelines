@@ -1,4 +1,5 @@
 import java.math.BigInteger
+import java.util.Properties
 
 import akka.actor.{Props, Actor}
 import akka.stream.actor.ActorSubscriberMessage.{OnComplete, OnError, OnNext}
@@ -71,9 +72,21 @@ object FibonacciPublisher {
   def props(): Props = Props(new FibonacciPublisher())
 }
 
-class FibonacciPublisher extends ActorPublisher[BigInteger]  {
-  var prev = BigInteger.ZERO
-  var curr = BigInteger.ZERO
+class FibonacciPublisher extends ActorPublisher[String]  {
+  var queue: mutable.Queue[String] = mutable.Queue()
+  val POLL_TIME = 200 // time in MS
+
+  // Setting up props for Kafka Consumer
+  val props = new Properties()
+  props.put("bootstrap.servers", "localhost:9092")
+  props.put("group.id", "fibonacci-consumer")
+  props.put("enable.auto.commit", "true")
+  props.put("auto.commit.interval.ms", "1000")
+  props.put("session.timeout.ms", "30000")
+  props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
+  props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
+  val consumer = new KafkaConsumer[String, String](props)
+  consumer.subscribe(List("fibonacci")) // Kafka-Consumer listening from the topic
 
   def receive = {
     case Request(cnt) =>
@@ -85,21 +98,22 @@ class FibonacciPublisher extends ActorPublisher[BigInteger]  {
     case _ =>
   }
 
-  def sendFibs() {
-    while(isActive && totalDemand > 0) {
-      onNext(nextFib())
+  def sendFibs() = {
+    while (isActive && totalDemand > 0) {
+      if(queue.isEmpty) {
+        pollNums()
+      }
+      if (queue.nonEmpty) {
+        onNext(queue.dequeue())
+      }
     }
   }
 
-  def nextFib(): BigInteger = {
-    if(curr == BigInteger.ZERO) {
-      curr = BigInteger.ONE
-    } else {
-      val tmp = prev.add(curr)
-      prev = curr
-      curr = tmp
+  def pollNums() = {
+    val records = consumer.poll(POLL_TIME) // Kafka-Consumer data collection
+    for (record <- records) {
+      queue.enqueue(record.value) // Add more tweets to queue
     }
-    curr
   }
 }
 

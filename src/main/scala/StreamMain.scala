@@ -42,15 +42,15 @@ object StreamMain extends App {
   consumer.subscribe(List("fibonacci")) // Kafka-Consumer listening from the topic
 
   // Source in this example is an ActorPublisher
-  val simpleTweetSource = Source.actorPublisher[BigInteger](FibonacciPublisher.props())
+  val simpleTweetSource = Source.actorPublisher[String](FibonacciPublisher.props())
   // Sink just prints to console, ActorSubscriber is not used
-  val consoleSink = Sink.foreach[BigInteger](tweet => {
+  val consoleSink = Sink.foreach[String](tweet => {
     println("FROM THE SINK: " + tweet)
-    Thread.sleep(2000) // simulate how akka-streams handles Backpressure
+    //Thread.sleep(2000) // simulate how akka-streams handles Backpressure
   })
 
   println("simple-tweets stream starting...")
-  val stream = Flow[BigInteger]
+  val stream = Flow[String]
     // transform message to upper-case
     // .map(msg => {println("mapping ${msg}"); msg.toUpperCase})
     // connecting to the sink
