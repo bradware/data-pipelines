@@ -68,25 +68,80 @@ case class Tweet(text: String, created_at: java.util.Date, user_name: String,
 }
 
 // Companion object
-object FibonacciPublisher {
-  def props(): Props = Props(new FibonacciPublisher())
+object TweetPublisher {
+  def props[K, V](consumer: KafkaConsumer[K, V]): Props = Props(new TweetPublisher(consumer))
 }
 
-class FibonacciPublisher extends ActorPublisher[String]  {
-  var queue: mutable.Queue[String] = mutable.Queue()
+/* ActorPublisher for the Akka Stream */
+class TweetPublisher[K, V](consumer: KafkaConsumer[K, V]) extends ActorPublisher[V] {
+  var queue: mutable.Queue[V] = mutable.Queue()
+  val POLL_TIME = 100 // time in MS
+
+  def receive = {
+    case Request(cnt) =>
+      println("received request from TweetSubscriber")
+      publishTweets()
+    case Cancel =>
+      println("cancelled message received from TweetSubscriber -- STOPPING")
+      context.stop(self)
+    case _ =>
+      println("received some other message")
+  }
+
+  def publishTweets() = {
+    while (isActive && totalDemand > 0) {
+      if(queue.isEmpty) {
+        pollTweets()
+      }
+      if (queue.nonEmpty) {
+        onNext(queue.dequeue())
+      }
+    }
+  }
+
+  def pollTweets() = {
+    val records = consumer.poll(POLL_TIME) // Kafka-Consumer data collection
+    for (record <- records) {
+      queue.enqueue(record.value) // Add more tweets to queue
+    }
+  }
+}
+
+// Companion object
+object TweetSubscriber {
+  def props(producer: KafkaProducer[String, Array[Byte]]): Props = Props(new TweetSubscriber(producer))
+}
+
+/* ActorSubscriber for the Akka Stream */
+class TweetSubscriber(producer: KafkaProducer[String, Array[Byte]]) extends ActorSubscriber {
+  val requestStrategy = new WatermarkRequestStrategy(50)
+
+  def receive = {
+    case OnNext(bytes: Array[Byte]) =>
+      println(bytes, "Received bytes from Publisher and now Producing push to kakfa topic twitter-mailchimp2")
+      producer.send(new ProducerRecord("twitter-mailchimp2", bytes))
+    case OnError(err: Exception) =>
+      println(err, "TweetSubscriber receieved Exception in  stream")
+      context.stop(self)
+    case OnComplete =>
+      println("TweetSubscriber stream completed!")
+      context.stop(self)
+    case _ =>
+  }
+}
+
+
+/*
+// Companion object
+object FibonacciPublisher {
+  def props[K, V](consumer: KafkaConsumer[K, V]): Props = Props(new FibonacciPublisher(consumer))
+}
+
+class FibonacciPublisher[K, V](consumer: KafkaConsumer[K, V]) extends ActorPublisher[V]  {
+  var queue: mutable.Queue[V] = mutable.Queue()
   val POLL_TIME = 200 // time in MS
 
-  // Setting up props for Kafka Consumer
-  val props = new Properties()
-  props.put("bootstrap.servers", "localhost:9092")
-  props.put("group.id", "fibonacci-consumer")
-  props.put("enable.auto.commit", "true")
-  props.put("auto.commit.interval.ms", "1000")
-  props.put("session.timeout.ms", "30000")
-  props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
-  props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
-  val consumer = new KafkaConsumer[String, String](props)
-  consumer.subscribe(List("fibonacci")) // Kafka-Consumer listening from the topic
+  //consumer stuff
 
   def receive = {
     case Request(cnt) =>
@@ -113,6 +168,7 @@ class FibonacciPublisher extends ActorPublisher[String]  {
     val records = consumer.poll(POLL_TIME) // Kafka-Consumer data collection
     for (record <- records) {
       queue.enqueue(record.value) // Add more tweets to queue
+      println(s"enqueued ${record.value}")
     }
   }
 }
@@ -160,72 +216,4 @@ class SimpleTweetPublisher(consumer: KafkaConsumer[String, String]) extends Acto
     }
   }
 }
-
-// Companion object
-object TweetPublisher {
-  def props[K, V](consumer: KafkaConsumer[K, V]): Props = Props(new TweetPublisher(consumer))
-}
-
-/* ActorPublisher for the Akka Stream */
-class TweetPublisher[K, V](consumer: KafkaConsumer[K, V]) extends ActorPublisher[V] {
-  var queue: mutable.Queue[V] = mutable.Queue()
-  val POLL_TIME = 100 // time in MS
-
-  def receive = {
-    case Request(cnt) =>
-      println("received request from TweetSubscriber")
-      publishTweets(cnt)
-    case Cancel =>
-      println("cancelled message received from TweetSubscriber -- STOPPING")
-      context.stop(self)
-    case _ =>
-      println("received some other message")
-  }
-
-  def publishTweets(count: Long) = {
-    var i = 0
-    println("Total Demand issued by ActorSubscriber: " + totalDemand)
-    while (i < count) {
-      if (queue.isEmpty) {
-        pollTweets()
-      }
-      if (queue.nonEmpty) {
-        val record = queue.dequeue()
-        OnNext(record) // Push the new data to the ActorSubscriber
-        println(s"publishTweets: ${record}")
-        i += 1
-      }
-    }
-    println("Exiting publishTweets...")
-  }
-
-  def pollTweets() = {
-    val records = consumer.poll(POLL_TIME) // Kafka-Consumer data collection
-    for (record <- records) {
-      queue.enqueue(record.value) // Add more tweets to queue
-    }
-  }
-}
-
-// Companion object
-object TweetSubscriber {
-  def props(producer: KafkaProducer[String, Array[Byte]]): Props = Props(new TweetSubscriber(producer))
-}
-
-/* ActorSubscriber for the Akka Stream */
-class TweetSubscriber(producer: KafkaProducer[String, Array[Byte]]) extends ActorSubscriber {
-  val requestStrategy = new WatermarkRequestStrategy(50)
-
-  def receive = {
-    case OnNext(bytes: Array[Byte]) =>
-      println(bytes, "Received bytes from Publisher and now Producing push to kakfa topic twitter-mailchimp2")
-      producer.send(new ProducerRecord("twitter-mailchimp2", bytes))
-    case OnError(err: Exception) =>
-      println(err, "TweetSubscriber receieved Exception in  stream")
-      context.stop(self)
-    case OnComplete =>
-      println("TweetSubscriber stream completed!")
-      context.stop(self)
-    case _ =>
-  }
-}
+*/
