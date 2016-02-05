@@ -1,3 +1,4 @@
+import java.math.BigInteger
 import java.util.Properties
 import akka.actor.{ActorSystem}
 import akka.stream.ActorMaterializer
@@ -29,7 +30,7 @@ object StreamMain extends App {
   // Setting up props for Kafka Consumer
   val props = new Properties()
   props.put("bootstrap.servers", "localhost:9092")
-  props.put("group.id", "simple-tweets-consumer")
+  props.put("group.id", "simple-tweets-consumer2")
   props.put("enable.auto.commit", "true")
   props.put("auto.commit.interval.ms", "1000")
   props.put("session.timeout.ms", "30000")
@@ -37,21 +38,21 @@ object StreamMain extends App {
   props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
 
   // Instantiating Kafka Consumer
-  val consumer = new KafkaConsumer[String, String](props)
-  consumer.subscribe(List("simple-tweets")) // Kafka-Consumer listening from the topic
+  val consumer = new KafkaConsumer[String, BigInteger](props)
+  consumer.subscribe(List("fibonacci")) // Kafka-Consumer listening from the topic
 
   // Source in this example is an ActorPublisher
-  val simpleTweetSource = Source.actorPublisher[String](TweetPublisher.props(consumer))
+  val simpleTweetSource = Source.actorPublisher[BigInteger](FibonacciPublisher.props())
   // Sink just prints to console, ActorSubscriber is not used
-  val consoleSink = Sink.foreach[String](tweet => {
-    println(tweet)
-    //Thread.sleep(2000) // simulate how akka-streams handles Backpressure
+  val consoleSink = Sink.foreach[BigInteger](tweet => {
+    println("FROM THE SINK: " + tweet)
+    Thread.sleep(2000) // simulate how akka-streams handles Backpressure
   })
 
   println("simple-tweets stream starting...")
-  val stream = Flow[String]
+  val stream = Flow[BigInteger]
     // transform message to upper-case
-    .map(msg => {println("mapping ${msg}"); msg.toUpperCase})
+    // .map(msg => {println("mapping ${msg}"); msg.toUpperCase})
     // connecting to the sink
     .to(consoleSink)
     .runWith(simpleTweetSource)
