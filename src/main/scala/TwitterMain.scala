@@ -4,7 +4,7 @@ import java.util.concurrent.LinkedBlockingQueue
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Flow, Sink, Source}
-import com.twitter.chill.{Kryo, KryoInstantiator, KryoPool}
+import com.twitter.chill.{KryoInstantiator, KryoPool}
 import com.twitter.hbc.ClientBuilder
 import com.twitter.hbc.core.endpoint.StatusesFilterEndpoint
 import com.twitter.hbc.core.event.Event
@@ -13,7 +13,7 @@ import com.twitter.hbc.core.{Constants, HttpHosts}
 import com.twitter.hbc.httpclient.auth.OAuth1
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.{ProducerRecord, KafkaProducer}
-import org.objenesis.strategy.{SerializingInstantiatorStrategy, StdInstantiatorStrategy}
+import org.objenesis.strategy.SerializingInstantiatorStrategy
 import scala.collection.JavaConversions._
 import org.json4s._
 import org.json4s.native.JsonMethods._
