@@ -22,8 +22,8 @@ class UtilSpec extends FlatSpec {
   assert(richTweet.userFollowerCount == "860")
   println()
 
-  val bytes = serializeTweet[Tweet](richTweet)
-  val newRichTweet = deserializeTweet[Tweet](bytes)
+  val bytes = serialize[Tweet](richTweet)
+  val newRichTweet = deserialize[Tweet](bytes)
   println("RichTweet Deserialized JSON")
   println(newRichTweet)
   assert(richTweet.equals(newRichTweet))
@@ -42,8 +42,8 @@ class UtilSpec extends FlatSpec {
   assert(richTweet2.userFollowerCount == "723")
   println()
 
-  val bytes2 = serializeTweet[Tweet](richTweet2)
-  val newRichTweet2 = deserializeTweet[Tweet](bytes2)
+  val bytes2 = serialize[Tweet](richTweet2)
+  val newRichTweet2 = deserialize[Tweet](bytes2)
   println("RichTweet2 Deserialized JSON")
   println(newRichTweet2)
   assert(richTweet2.equals(newRichTweet2))
@@ -62,8 +62,8 @@ class UtilSpec extends FlatSpec {
   assert(richTweet3.userFollowerCount == "438")
   println()
 
-  val bytes3 = serializeTweet[Tweet](richTweet3)
-  val newRichTweet3 = deserializeTweet[Tweet](bytes3)
+  val bytes3 = serialize[Tweet](richTweet3)
+  val newRichTweet3 = deserialize[Tweet](bytes3)
   println("RichTweet3 Deserialized JSON")
   println(newRichTweet3)
   assert(richTweet3.equals(newRichTweet3))

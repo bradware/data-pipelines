@@ -94,14 +94,11 @@ class TweetPublisher[K, V](consumer: KafkaConsumer[K, V]) extends ActorPublisher
   val POLL_TIME = 100 // time in MS
 
   def receive = {
-    case Request(cnt) =>
-      println("received request from TweetSubscriber")
-      publishTweets()
+    case Request(cnt) => publishTweets()
     case Cancel =>
-      println("cancelled message received from TweetSubscriber -- STOPPING")
+      println("Cancelled message received in TweetPublisher -- STOPPING")
       context.stop(self)
-    case _ =>
-      println("received some other message")
+    case _ => println("Received some other message in TwetPublisher")
   }
 
   def publishTweets() = {
@@ -125,18 +122,16 @@ class TweetPublisher[K, V](consumer: KafkaConsumer[K, V]) extends ActorPublisher
 
 // Companion object
 object TweetSubscriber {
-  def props(producer: KafkaProducer[String, Array[Byte]]): Props = Props(new TweetSubscriber(producer))
+  def props[K,V](producer: KafkaProducer[K, V]): Props = Props(new TweetSubscriber(producer))
 }
 /* ActorSubscriber for the Akka Stream */
-class TweetSubscriber(producer: KafkaProducer[String, Array[Byte]]) extends ActorSubscriber {
+class TweetSubscriber[K,V](producer: KafkaProducer[K, V]) extends ActorSubscriber {
   val requestStrategy = new WatermarkRequestStrategy(50)
 
   def receive = {
-    case OnNext(bytes: Array[Byte]) =>
-      println(bytes, "Received bytes from Publisher and now Producing push to kakfa topic twitter-mailchimp")
-      producer.send(new ProducerRecord("twitter-mailchimp", bytes))
+    case OnNext(v: V) => producer.send(new ProducerRecord("twitter-mailchimp", v))
     case OnError(err: Exception) =>
-      println(err, "TweetSubscriber receieved Exception in  stream")
+      println(err, "TweetSubscriber received Exception in stream")
       context.stop(self)
     case OnComplete =>
       println("TweetSubscriber stream completed!")
