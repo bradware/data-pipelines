@@ -102,7 +102,7 @@ object TwitterMain extends App {
 
   // Filter out tweets
   val terms = List("mailchimp", "MailChimp", "Mailchimp")
-  //hosebirdEndpoint.filterLevel(FilterLevel.Medium)
+  hosebirdEndpoint.filterLevel(FilterLevel.Medium)
   hosebirdEndpoint.trackTerms(terms)
 
   // Pass in Auth for HBC Stream
