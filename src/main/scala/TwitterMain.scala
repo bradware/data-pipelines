@@ -148,8 +148,8 @@ object TwitterMain extends App {
   // Source in this example  is an ActorPublisher publishing transformed tweet json
   val richTweetSource = Source.actorPublisher[Array[Byte]](TweetPublisher.props(twitterConsumer))
   // Sink is simply the console
-  val consoleSink = Sink.foreach[RichTweet](rt => {
-    println("CONSOLE SINK: " + rt.text)
+  val consoleSink = Sink.foreach[RichTweet](richTweet => {
+    println("CONSOLE SINK: " + richTweet.text)
   })
 
   // Akka Stream/Flow: ActorPublisher ---> raw JSON ---> Tweet Struct ---> Kryo Array[Byte]  ---> ActorSubscriber
