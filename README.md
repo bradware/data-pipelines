@@ -30,7 +30,7 @@ You will need the following things properly installed on your computer.
 
 ## Simple Actor Pipeline
 
-* Publish messages to Kafka Topic through command-line Producer
+* Publish messages to Kafka Topic through command-line **Kafka Producer**
   *  `bin/kafka-console-producer.sh --broker-list localhost:9092 --topic topic_name`
 * Push messages to an Akka Actor from the Kafka Consumer (which polls from Kafka Topic)
 * Messages go through a actor transition and undergo transformation
@@ -38,10 +38,21 @@ You will need the following things properly installed on your computer.
 
 `SimpleActor ----> SimpleProcessor -----> SimplePrinter -----> Dumps to console`
 
-**Note**: Make sure the kakfa topic in `SimpleActorPipeline.scala` matches the one you created during Getting Started and for the command line
+**Note**: Make sure the kakfa topic in `SimpleActorPipeline.scala` matches the one you created during Getting Started and for the command line **Kafka Producer**
 
 Run through `SimpleActorPipeline.scala`
 
-## Simple Actor Pipeline
+## Simple Tweet Pipeline
+* Publish messages to Kafka Topic through command-line **Kafka Producer**
+  *  `bin/kafka-console-producer.sh --broker-list localhost:9092 --topic topic_name`
+* Pull messages from Kafka Consumer into Akka ActorPublisher
+* Push Messages through an Akka Stream/Runnable Flow and undergo transformation (Source)
+* Subscriber reads the messages from the Akka Stream/Runnable Flow (Sink)
+* Subscriber/Sink dumps the transformed to the console
+
+**Note**: Make sure the kakfa topic in `SimpleActorPipeline.scala` matches the one you created during Getting Started and for the command line **Kafka Producer**
+
+Run through `SimpleTweetPipeline.scala`
+
 
 
