@@ -52,7 +52,7 @@ Run through `SimpleActorPipeline.scala`
 Run through `SimpleTweetPipeline.scala`
 
 ## Twitter Pipeline
-In `Config.scala` update the terms list (see below) to apply the correct Twitter filtering for your pipeline. The current one pulls tweets based on [MailChimp](http://mailchimp.com) filters.
+In `Config.scala` update the terms list (see below) to apply the correct Twitter filtering for your pipeline. The current one pulls tweets based on filter [MailChimp](http://mailchimp.com).
 
 `val terms = List("MailChimp", "Mailchimp", "MailChimp Status", "Mailchimp Status", "MailChimp UX", "Mailchimp UX", "MailChimp Design","Mailchimp Design", "MailChimp API", "Mailchimp API", "Mandrill", "mandrillapp", "TinyLetter", "Tinyletter")`
 
@@ -62,10 +62,10 @@ In `Config.scala` update your Twitter Authentication Credentials
 * Pull raw json tweets from Twitter HBC client
 * Push raw json tweets into Kafka topic through Kafka Producer
 * Pull raw json tweets from Kafka Consumer and store in Akka Publisher
-* Akka Publisher sends raw json through first stream to transform/serialize to Tweet object
-* Akka Subscriber takes serialized Tweet object and uses Kafka Producer to push to another Kafka Topic
-* Kafka Consumer inside Akka Publisher pulls from topic and sends the serialized tweet through final stream
-* Final Stream deserializes the Tweet object and dumps to console sink
+* Akka Publisher sends raw json through first stream to transform/serialize to `Tweet` object
+* Akka Subscriber takes serialized `Tweet` object and uses Kafka Producer to push to another Kafka Topic
+* Kafka Consumer inside Akka Publisher pulls from topic and sends the serialized `Tweet` through final stream
+* Final Stream deserializes the `Tweet` object and dumps to console sink
 
 **Note**: Make sure the kakfa topics (yes Twitter Pipeline has 2) in `TwitterPipeline.scala` match the one you created during **Getting Started** 
 
