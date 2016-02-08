@@ -61,7 +61,7 @@ object Config {
     // Setting up props for Kafka Consumer
     val consProps = new Properties()
     consProps.put("bootstrap.servers", "localhost:9092")
-    consProps.put("group.id", "twitter-mailchimp-consumer")
+    consProps.put("group.id", "twitter-pipeline-consumer")
     consProps.put("enable.auto.commit", "true")
     consProps.put("auto.commit.interval.ms", "1000")
     consProps.put("session.timeout.ms", "30000")

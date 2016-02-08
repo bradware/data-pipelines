@@ -48,19 +48,19 @@ object TwitterPipeline extends App {
   // Reads data from Twitter HBC on own thread
   val hbcTwitterStream = new Thread {
     override def run() = {
+      hosebirdClient.connect() // Establish a connection to Twitter HBC stream
       while (!hosebirdClient.isDone()) {
         var event = Config.eventQueue.take()
-        var tweet  = Config.msgQueue.take()
+        var tweet = Config.msgQueue.take()
         // kafka producer publish tweet to kafka topic
         rawTwitterProducer.send(new ProducerRecord("twitter-pipeline-raw", tweet))
       }
+      hosebirdClient.stop() // Closes connection with Twitter HBC stream
     }
   }
 
   println("twitter data-pipeline starting...")
-  hosebirdClient.connect() // Establish a connection to Twitter HBC stream
   hbcTwitterStream.start() // Starts the thread which invokes run()
-  //hosebirdClient.stop() // Closes connection with Twitter HBC stream **FIGURE OUT A WAY TO DO THIS WITHOUT SHUTTING DOWN CONNECTION
 
   // Source in this example is an ActorPublisher publishing raw tweet json
   val rawTweetSource = Source.actorPublisher[String](TweetPublisher.props(rawTwitterConsumer))
