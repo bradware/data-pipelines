@@ -19,7 +19,7 @@ Repo containing 3 data pipeline mini-projects:
 * `bin/kafka-server-start.sh config/server.properties`
 * Create raw data Kafka Topic (insert real name for topic_name): 
   * `bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic topic_name`
-* Create transformed data Kafka Topic (insert real name for topic_name: 
+* Create transformed data Kafka Topic (insert real name for topic_name): 
   * `bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic topic_name`
 * See new topics created:
   * `bin/kafka-topics.sh --list --zookeeper localhost:2181`
