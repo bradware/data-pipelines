@@ -28,4 +28,15 @@ You will need the following things properly installed on your computer.
 * See new topics created:
   * `bin/kafka-topics.sh --list --zookeeper localhost:2181`
 
+## Simple Actor Pipeline
+
+1. Publish messages to Kafka Topic through command-line Producer
+2. Push messages to an Akka Actor from the Kafka Consumer (which polls from Kafka Topic)
+3. Messages go through a actor transition and undergo transformation
+4. Final actor dumps output to console
+
+SimpleActor ----> SimpleProcessor -----> SimplePrinter -----> Dumps to console
+
+Run through `SimpleActorPipeline.scala`
+
 
