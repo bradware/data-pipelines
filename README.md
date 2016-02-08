@@ -30,10 +30,10 @@ You will need the following things properly installed on your computer.
 
 ## Simple Actor Pipeline
 
-1. Publish messages to Kafka Topic through command-line Producer
-2. Push messages to an Akka Actor from the Kafka Consumer (which polls from Kafka Topic)
-3. Messages go through a actor transition and undergo transformation
-4. Final actor dumps output to console
+* Publish messages to Kafka Topic through command-line Producer
+* Push messages to an Akka Actor from the Kafka Consumer (which polls from Kafka Topic)
+* Messages go through a actor transition and undergo transformation
+* Final actor dumps output to console
 
 SimpleActor ----> SimpleProcessor -----> SimplePrinter -----> Dumps to console
 
