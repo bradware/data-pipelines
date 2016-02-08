@@ -8,7 +8,7 @@ You will need the following things properly installed on your computer.
 * [Scala](http://www.scala-lang.org/download)
 * [Kafka](http://kafka.apache.org/downloads.html) (v9)
 
-**Note**: These are included in the build.sbt file, however to locally run kafka-topics on your machine you must have kafka-9 source
+**Note**: These are included in the build.sbt file, however to locally run topics on your machine you must have the source
 
 ## Installation
 
