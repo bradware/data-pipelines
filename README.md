@@ -5,7 +5,6 @@ Repo containing multiple data-pipeline projects using Scala, Kafka 9, and Akka S
 * Twitter Pipeline
 
 ## Technologies
-
 You will need the following things properly installed on your computer.
 
 * [Scala](http://www.scala-lang.org/download)
@@ -15,7 +14,6 @@ You will need the following things properly installed on your computer.
 * [Kryo - Twitter Chill](https://github.com/twitter/chill)
 
 ## Getting Started
-
 * download [Kafka 9](http://kafka.apache.org/downloads.html)
 * navigate to where you downloaded kafka 9: 
   * `cd kafka_2.11-0.9.0.0`
@@ -29,7 +27,6 @@ You will need the following things properly installed on your computer.
   * `bin/kafka-topics.sh --list --zookeeper localhost:2181`
 
 ## Simple Actor Pipeline
-
 * Publish messages to Kafka Topic through command-line **Kafka Producer**
   *  `bin/kafka-console-producer.sh --broker-list localhost:9092 --topic topic_name`
 * Push messages to an Akka Actor from the Kafka Consumer (which polls from Kafka Topic)
@@ -38,7 +35,7 @@ You will need the following things properly installed on your computer.
 
 `SimpleActor ----> SimpleProcessor -----> SimplePrinter -----> Dumps to console`
 
-**Note**: Make sure the kakfa topic in `SimpleActorPipeline.scala` matches the one you created during Getting Started and for the command line **Kafka Producer**
+**Note**: Make sure the kakfa topic in `SimpleActorPipeline.scala` matches the one you created during **Getting Started** and for the command line **Kafka Producer**
 
 Run through `SimpleActorPipeline.scala`
 
@@ -50,9 +47,9 @@ Run through `SimpleActorPipeline.scala`
 * Subscriber reads the messages from the Akka Stream/Runnable Flow (Sink)
 * Subscriber/Sink dumps the transformed to the console
 
-**Note**: Make sure the kakfa topic in `SimpleActorPipeline.scala` matches the one you created during Getting Started and for the command line **Kafka Producer**
+**Note**: Make sure the kakfa topic in `SimpleActorPipeline.scala` matches the one you created during **Getting Started** and for the command line **Kafka Producer**
 
 Run through `SimpleTweetPipeline.scala`
 
-
+## Twitter Pipeline
 
