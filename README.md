@@ -26,7 +26,7 @@ Repo containing 3 data pipeline mini-projects:
 
 ## Simple Actor Pipeline
 ### Overview
-* Publish messages to Kafka Topic through command-line **Kafka Producer**
+* Publish messages to Kafka Topic through command-line Kafka Producer
   *  `bin/kafka-console-producer.sh --broker-list localhost:9092 --topic topic_name`
 * Push messages to an Akka Actor from the Kafka Consumer (which polls from Kafka Topic)
 * Messages go through a actor transition and undergo transformation
@@ -34,20 +34,20 @@ Repo containing 3 data pipeline mini-projects:
 
 `SimpleActor ----> SimpleProcessor -----> SimplePrinter -----> Dumps to console`
 
-**Note**: Make sure the kakfa topic in `SimpleActorPipeline.scala` matches the one you created during **Getting Started** and for the command line **Kafka Producer**
+**Note**: Make sure the kakfa topic in `SimpleActorPipeline.scala` matches the one you created during **Getting Started** and for the command line Kafka Producer
 
 Run through `SimpleActorPipeline.scala`
 
 ## Simple Tweet Pipeline
 ### Overview
-* Publish messages to Kafka Topic through command-line **Kafka Producer**
+* Publish messages to Kafka Topic through command-line Kafka Producer
   *  `bin/kafka-console-producer.sh --broker-list localhost:9092 --topic topic_name`
 * Pull messages from Kafka Consumer into Akka ActorPublisher
 * Push Messages through an Akka Stream/Runnable Flow and undergo transformation (Source)
 * Subscriber reads the messages from the Akka Stream/Runnable Flow (Sink)
 * Subscriber/Sink dumps the transformed to the console
 
-**Note**: Make sure the kakfa topic in `SimpleTweetPipeline.scala` matches the one you created during **Getting Started**
+**Note**: Make sure the kakfa topic in `SimpleTweetPipeline.scala` matches the one you created during **Getting Started** and for the command line Kafka Producer
 
 Run through `SimpleTweetPipeline.scala`
 
@@ -67,7 +67,7 @@ In `Config.scala` update your Twitter Authentication Credentials
 * Kafka Consumer inside Akka Publisher pulls from topic and sends the serialized tweet through final stream
 * Final Stream deserializes the Tweet object and dumps to console sink
 
-**Note**: Make sure the kakfa topics (yes Twitter Pipeline has 2) in `TwitterPipeline.scala` match the one you created during **Getting Started**
+**Note**: Make sure the kakfa topics (yes Twitter Pipeline has 2) in `TwitterPipeline.scala` match the one you created during **Getting Started** 
 
 Run through `TwitterPipeline.scala`
 
