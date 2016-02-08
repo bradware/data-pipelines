@@ -14,7 +14,7 @@ You will need the following things properly installed on your computer.
 * [Twitter HBC API](https://github.com/twitter/hbc)
 * [Kryo - Twitter Chill](https://github.com/twitter/chill)
 
-## Installation
+## Getting Started
 
 * download [Kafka 9](http://kafka.apache.org/downloads.html)
 * navigate to where you downloaded kafka 9: 
@@ -35,8 +35,11 @@ You will need the following things properly installed on your computer.
 * Messages go through a actor transition and undergo transformation
 * Final actor dumps output to console
 
-SimpleActor ----> SimpleProcessor -----> SimplePrinter -----> Dumps to console
+`SimpleActor ----> SimpleProcessor -----> SimplePrinter -----> Dumps to console`
 
+**Note**: Make sure the kakfa topic in ``SimpleActorPipeline.scala` matches the one you created during Getting Started
 Run through `SimpleActorPipeline.scala`
+
+## Simple Actor Pipeline
 
 
