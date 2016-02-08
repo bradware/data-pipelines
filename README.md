@@ -27,6 +27,7 @@ You will need the following things properly installed on your computer.
   * `bin/kafka-topics.sh --list --zookeeper localhost:2181`
 
 ## Simple Actor Pipeline
+### Overview
 * Publish messages to Kafka Topic through command-line **Kafka Producer**
   *  `bin/kafka-console-producer.sh --broker-list localhost:9092 --topic topic_name`
 * Push messages to an Akka Actor from the Kafka Consumer (which polls from Kafka Topic)
@@ -40,6 +41,7 @@ You will need the following things properly installed on your computer.
 Run through `SimpleActorPipeline.scala`
 
 ## Simple Tweet Pipeline
+### Overview
 * Publish messages to Kafka Topic through command-line **Kafka Producer**
   *  `bin/kafka-console-producer.sh --broker-list localhost:9092 --topic topic_name`
 * Pull messages from Kafka Consumer into Akka ActorPublisher
@@ -47,23 +49,27 @@ Run through `SimpleActorPipeline.scala`
 * Subscriber reads the messages from the Akka Stream/Runnable Flow (Sink)
 * Subscriber/Sink dumps the transformed to the console
 
-**Note**: Make sure the kakfa topic in `SimpleActorPipeline.scala` matches the one you created during **Getting Started**
+**Note**: Make sure the kakfa topic in `SimpleTweetPipeline.scala` matches the one you created during **Getting Started**
 
 Run through `SimpleTweetPipeline.scala`
 
 ## Twitter Pipeline
-In `Config.scala` update the terms list to apply the correct Twitter filtering for your pipeline. The current one pulls tweets based on [MailChimp](http://mailchimp.com) filters. See below:
+In `Config.scala` update the terms list (see below) to apply the correct Twitter filtering for your pipeline. The current one pulls tweets based on [MailChimp](http://mailchimp.com) filters.
 
-`val terms = List("MailChimp", "Mailchimp", "MailChimp Status", "Mailchimp Status", "MailChimp UX", "Mailchimp UX", "MailChimp Design","Mailchimp Design", "MailChimp API", "Mailchimp API", "Mandrill", "mandrillapp", "TinyLetter", "Tinyletter")
+`val terms = List("MailChimp", "Mailchimp", "MailChimp Status", "Mailchimp Status", "MailChimp UX", "Mailchimp UX", "MailChimp Design","Mailchimp Design", "MailChimp API", "Mailchimp API", "Mandrill", "mandrillapp", "TinyLetter", "Tinyletter")`
 
-hosebirdEndpoint.trackTerms(terms)`
+In `Config.scala` update your Twitter Authentication Credentials
 
-* Publish messages to Kafka Topic through command-line **Kafka Producer**
-  *  `bin/kafka-console-producer.sh --broker-list localhost:9092 --topic topic_name`
-* Pull messages from Kafka Consumer into Akka ActorPublisher
-* Push Messages through an Akka Stream/Runnable Flow and undergo transformation (Source)
-* Subscriber reads the messages from the Akka Stream/Runnable Flow (Sink)
-* Subscriber/Sink dumps the transformed to the console
+### Overview
+* Pull raw json tweets from Twitter HBC client
+* Push raw json tweets into Kafka topic through Kafka Producer
+* Pull raw json tweets from Kafka Consumer and store in Akka Publisher
+* Akka Publisher sends raw json through first stream to transform/serialize to Tweet object
+* Akka Subscriber takes serialized Tweet object and uses Kafka Producer to push to another Kafka Topic
+* Kafka Consumer inside Akka Publisher pulls from topic and sends the serialized tweet through final stream
+* Final Stream deserializes the Tweet object and dumps to console sink
 
-**Note**: Make sure the kakfa topics (yes Twitter Pipeline has 2) in `SimpleActorPipeline.scala` match the one you created during **Getting Started**
+**Note**: Make sure the kakfa topics (yes Twitter Pipeline has 2) in `TwitterPipeline.scala` match the one you created during **Getting Started**
+
+Run through `TwitterPipeline.scala`
 
