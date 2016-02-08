@@ -5,8 +5,6 @@ Repo containing 3 data pipeline mini-projects:
 * Twitter Pipeline
 
 ## Technologies
-You will need the following things properly installed on your computer.
-
 * [Scala](http://www.scala-lang.org/download)
 * [Kafka](http://kafka.apache.org/downloads.html) (v9)
 * [Akka Streams](http://doc.akka.io/docs/akka-stream-and-http-experimental/2.0.2/scala.html)
