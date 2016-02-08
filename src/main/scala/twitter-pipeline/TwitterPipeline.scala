@@ -57,7 +57,7 @@ object TwitterPipeline extends App {
     }
   }
 
-  println("twitter-mailchimp data-pipeline starting...")
+  println("twitter data-pipeline starting...")
   hosebirdClient.connect() // Establish a connection to Twitter HBC stream
   hbcTwitterStream.start() // Starts the thread which invokes run()
   //hosebirdClient.stop() // Closes connection with Twitter HBC stream **FIGURE OUT A WAY TO DO THIS WITHOUT SHUTTING DOWN CONNECTION
