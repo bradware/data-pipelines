@@ -2,10 +2,11 @@ import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Flow, Sink, Source}
 import org.apache.kafka.clients.consumer.KafkaConsumer
-import org.apache.kafka.clients.producer.{ProducerRecord, KafkaProducer}
-import scala.collection.JavaConversions._
+import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
 import org.json4s._
 import org.json4s.native.JsonMethods._
+
+import scala.collection.JavaConversions._
 
 /*
   =============================
@@ -19,7 +20,7 @@ import org.json4s.native.JsonMethods._
     7. Final Stream deserializes the Tweet object and dumps to console sink
   =============================
 */
-object TwitterPipelineMain extends App {
+object TwitterPipeline extends App {
   // Akka Actor and Producer/Subscriber setup
   implicit val system = ActorSystem("TwitterPipeline")
   implicit val materializer = ActorMaterializer()

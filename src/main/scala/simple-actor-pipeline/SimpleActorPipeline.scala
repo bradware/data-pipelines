@@ -1,9 +1,9 @@
 import java.util.Properties
 
+import akka.actor.{ActorRef, ActorSystem, Props}
 import org.apache.kafka.clients.consumer.KafkaConsumer
-import scala.collection.JavaConversions._
 
-import akka.actor.{ ActorRef, ActorSystem, Props }
+import scala.collection.JavaConversions._
 
 /*
   =============================
@@ -14,8 +14,7 @@ import akka.actor.{ ActorRef, ActorSystem, Props }
    Actor 1 ----> Actor 2 -----> Actor 3 -----> Dumps to console
   =============================
 */
-
-object SimpleActorPipelineMain extends App {
+object SimpleActorPipeline extends App {
   // Akka Steam actor setup and creation
   val system = ActorSystem("SimpleActorPipeline")
   val simpleActor = system.actorOf(Props[SimpleActor], "SimpleActor")

@@ -2,21 +2,20 @@ import akka.actor.Props
 import akka.stream.actor.ActorPublisher
 import akka.stream.actor.ActorPublisherMessage.{Cancel, Request}
 import org.apache.kafka.clients.consumer.KafkaConsumer
+
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 
 /*
-  ==============================
-  Kafka ActorPublisher below
-  ==============================
+  Companion object
 */
-
-// Companion object
 object TweetPublisher {
   def props[K, V](consumer: KafkaConsumer[K, V]): Props = Props(new TweetPublisher(consumer))
 }
 
-// ActorPublisher that pulls from Kafka Topic and and sends to ActorSubscriber
+/*
+  ActorPublisher that pulls from Kafka Topic and and sends to ActorSubscriber
+*/
 class TweetPublisher[K, V](consumer: KafkaConsumer[K, V]) extends ActorPublisher[V] {
   var queue: mutable.Queue[V] = mutable.Queue()
   val POLL_TIME = 100 // time in MS

@@ -1,20 +1,18 @@
 import akka.actor.Props
 import akka.stream.actor.ActorSubscriberMessage.{OnComplete, OnError, OnNext}
-import akka.stream.actor.{WatermarkRequestStrategy, ActorSubscriber}
-import org.apache.kafka.clients.producer.{ProducerRecord, KafkaProducer}
+import akka.stream.actor.{ActorSubscriber, WatermarkRequestStrategy}
+import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
 
 /*
-  ==============================
-  Kafka ActorSubscriber below
-  ==============================
+  Companion object
 */
-
-// Companion object
 object TweetSubscriber {
   def props[K,V](producer: KafkaProducer[K, V], kafkaTopic: String): Props = Props(new TweetSubscriber(producer, kafkaTopic))
 }
 
-// ActorSubscriber that publishes to Kafka Topic for the Akka Stream
+/*
+  ActorSubscriber that publishes to Kafka Topic for the Akka Stream
+*/
 class TweetSubscriber[K,V](producer: KafkaProducer[K, V], kafkaTopic: String) extends ActorSubscriber {
   val requestStrategy = new WatermarkRequestStrategy(50) // high volume of 50, low of 25
 

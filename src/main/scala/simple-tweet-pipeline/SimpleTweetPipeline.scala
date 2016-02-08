@@ -1,8 +1,10 @@
 import java.util.Properties
-import akka.actor.{ActorSystem}
+
+import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Flow, Sink, Source}
 import org.apache.kafka.clients.consumer.KafkaConsumer
+
 import scala.collection.JavaConversions._
 
 /*
@@ -21,7 +23,7 @@ import scala.collection.JavaConversions._
     FLOW: Source.actorRef(Source) ---> Stream ---> ActorSubscriber(Sink)
   =============================
 */
-object SimpleTweetPipelineMain extends App {
+object SimpleTweetPipeline extends App {
   implicit val system = ActorSystem("SimpleTweetPipeline")
   implicit val materializer = ActorMaterializer()
 
@@ -38,7 +40,7 @@ object SimpleTweetPipelineMain extends App {
   val consumer = new KafkaConsumer[String, String](props)
   consumer.subscribe(List("simple-tweet-pipeline")) // Kafka-Consumer listening from the topic
 
-  // Source in this example is an ActorPublisher
+  // Source in this example is an ActorPublisher from twitter-pipeline project
   val simpleTweetSource = Source.actorPublisher[String](TweetPublisher.props(consumer))
   // Sink just prints to console, ActorSubscriber is not used
   val consoleSink = Sink.foreach[Tweet](tweet => {

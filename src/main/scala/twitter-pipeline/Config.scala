@@ -12,9 +12,6 @@ import com.twitter.hbc.core.{Constants, HttpHosts}
 import com.twitter.hbc.core.event.Event
 import com.twitter.hbc.httpclient.auth.OAuth1
 
-/**
-  * Created by bware on 2/8/16.
-  */
 object Config {
   // Twitter authentication credentials
   val CONSUMER_KEY = "Fn2GkcTo7MTXBUTH86gCcTCIg"
@@ -91,5 +88,4 @@ object Config {
 
     prodProps
   }
-
 }
