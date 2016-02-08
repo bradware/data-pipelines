@@ -100,7 +100,9 @@ object TwitterMain extends App {
   val hosebirdEndpoint = new StatusesFilterEndpoint()
 
   // Filter out tweets
-  val terms = List("mailchimp", "MailChimp", "Mailchimp")
+  // Mailchimp matches mailchimp, MAILCHIMP, #mailchimp, @mailchimp, etc... BUT NOT 'MailChimp'
+  val terms = List("MailChimp", "Mailchimp", "MailChimp Status", "Mailchimp Status", "MailChimp UX", "Mailchimp UX", "MailChimp Design",
+                    "Mailchimp Design", "MailChimp API", "Mailchimp API", "Mandrill", "mandrillapp", "TinyLetter", "Tinyletter")
   hosebirdEndpoint.trackTerms(terms)
 
   // Pass in Auth for HBC Stream
@@ -143,7 +145,7 @@ object TwitterMain extends App {
   // Source in this example is an ActorPublisher publishing raw tweet json
   val rawTweetSource = Source.actorPublisher[String](TweetPublisher.props(rawTwitterConsumer))
   // ActorSubscriber is the sink that pushes back into the Kafka Producer
-  val richTweetSink = Sink.actorSubscriber[Array[Byte]](TweetSubscriber.props(twitterProducer))
+  val richTweetSink = Sink.actorSubscriber[Array[Byte]](TweetSubscriber.props(twitterProducer, "fake-topic"))
 
   // Source in this example  is an ActorPublisher publishing transformed tweet json
   val richTweetSource = Source.actorPublisher[Array[Byte]](TweetPublisher.props(twitterConsumer))
