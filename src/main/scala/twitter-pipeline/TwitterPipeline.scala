@@ -25,6 +25,10 @@ object TwitterPipeline extends App {
   implicit val system = ActorSystem("TwitterPipeline")
   implicit val materializer = ActorMaterializer()
 
+  // Kafka Topics
+  val RAW_TOPIC = "twitter-pipeline-raw"
+  val TOPIC = "twitter-pipeline"
+
   // Props for Kafka Consumer and Producer
   val prodProps = Config.kafkaProducerPropSetup
   val consProps = Config.kafkaConsumerPropSetup
@@ -32,7 +36,7 @@ object TwitterPipeline extends App {
   // Raw twitter Kafka Producer and Consumer setup
   val rawTwitterProducer = new KafkaProducer[String, String](prodProps)
   val rawTwitterConsumer = new KafkaConsumer[String, String](consProps)
-  rawTwitterConsumer.subscribe(List("twitter-pipeline-raw"))
+  rawTwitterConsumer.subscribe(List(RAW_TOPIC))
 
   // Transformed twitter Kafka Consumer and Producer setup
   // Changing prop value of serializer & deserializer to handle Array[Byte]
@@ -40,7 +44,7 @@ object TwitterPipeline extends App {
   val twitterProducer = new KafkaProducer[String, Array[Byte]](prodProps)
   consProps.put("value.deserializer", "org.apache.kafka.common.serialization.ByteArrayDeserializer")
   val twitterConsumer = new KafkaConsumer[String, Array[Byte]](consProps)
-  twitterConsumer.subscribe(List("twitter-pipeline"))
+  twitterConsumer.subscribe(List(TOPIC))
 
   // Setting up HBC client builder
   val hosebirdClient = Config.twitterHBCSetup
@@ -50,10 +54,10 @@ object TwitterPipeline extends App {
     override def run() = {
       hosebirdClient.connect() // Establish a connection to Twitter HBC stream
       while (!hosebirdClient.isDone()) {
-        var event = Config.eventQueue.take()
-        var tweet = Config.msgQueue.take()
+        val event = Config.eventQueue.take()
+        val tweet = Config.msgQueue.take()
         // kafka producer publish tweet to kafka topic
-        rawTwitterProducer.send(new ProducerRecord("twitter-pipeline-raw", tweet))
+        rawTwitterProducer.send(new ProducerRecord(RAW_TOPIC, tweet))
       }
       hosebirdClient.stop() // Closes connection with Twitter HBC stream
     }
@@ -65,7 +69,7 @@ object TwitterPipeline extends App {
   // Source in this example is an ActorPublisher publishing raw tweet json
   val rawTweetSource = Source.actorPublisher[String](TweetPublisher.props(rawTwitterConsumer))
   // ActorSubscriber is the sink that uses Kafka Producer to push back into Kafka Topic
-  val richTweetSink = Sink.actorSubscriber[Array[Byte]](TweetSubscriber.props(twitterProducer, "twitter-pipeline"))
+  val richTweetSink = Sink.actorSubscriber[Array[Byte]](TweetSubscriber.props(twitterProducer, TOPIC))
 
   // Akka Stream/Flow: ActorPublisher ---> raw JSON ---> Tweet ---> Array[Byte] ---> ActorSubscriber
   val rawStream = Flow[String]
