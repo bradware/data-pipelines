@@ -1,5 +1,5 @@
 # Data Pipeline Demo
-Repo containing multiple data-pipeline projects using Scala, Kafka 9, and Akka Streams. Contains 3 mini-projects:
+Repo containing 3 data pipeline mini-projects:
 * Simple Actor Pipeline
 * Simple Tweet Pipeline
 * Twitter Pipeline
