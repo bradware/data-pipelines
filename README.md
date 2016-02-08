@@ -31,13 +31,15 @@ You will need the following things properly installed on your computer.
 ## Simple Actor Pipeline
 
 * Publish messages to Kafka Topic through command-line Producer
+  *  `bin/kafka-console-producer.sh --broker-list localhost:9092 --topic topic_name`
 * Push messages to an Akka Actor from the Kafka Consumer (which polls from Kafka Topic)
 * Messages go through a actor transition and undergo transformation
 * Final actor dumps output to console
 
 `SimpleActor ----> SimpleProcessor -----> SimplePrinter -----> Dumps to console`
 
-**Note**: Make sure the kakfa topic in ``SimpleActorPipeline.scala` matches the one you created during Getting Started
+**Note**: Make sure the kakfa topic in `SimpleActorPipeline.scala` matches the one you created during Getting Started and for the command line
+
 Run through `SimpleActorPipeline.scala`
 
 ## Simple Actor Pipeline
