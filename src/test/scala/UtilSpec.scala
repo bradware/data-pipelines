@@ -1,5 +1,5 @@
 import java.util.Date
-import TwitterMain._
+import Util._
 import org.json4s._
 import org.json4s.native.JsonMethods._
 import org.scalatest.FlatSpec
