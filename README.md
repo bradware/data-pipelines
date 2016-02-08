@@ -13,9 +13,12 @@ You will need the following things properly installed on your computer.
 ## Installation
 
 * navigate to where you downloaded kafka 9: `cd kafka_2.11-0.9.0.0`
-* Start ZooKeeper server: `bin/zookeeper-server-start.sh config/zookeeper.properties`
-* Start Kafka server: `bin/kafka-server-start.sh config/server.properties`
-* Create raw data Kafka Topic: `bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic topic_name`
-* * Create transformed data Kafka Topic: `bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic topic_name`
-* See new topics created: `bin/kafka-topics.sh --list --zookeeper localhost:2181`
+* `bin/zookeeper-server-start.sh config/zookeeper.properties`
+* `bin/kafka-server-start.sh config/server.properties`
+* Create raw data Kafka Topic: 
+  * `bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic topic_name`
+* Create transformed data Kafka Topic: 
+  * `bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic topic_name`
+* See new topics created:
+  * `bin/kafka-topics.sh --list --zookeeper localhost:2181`
 
