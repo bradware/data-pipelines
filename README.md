@@ -54,8 +54,8 @@ Run through `SimpleTweetPipeline.scala`
 ## Twitter Pipeline
 In `Config.scala` update the terms list to apply the correct Twitter filtering for your pipeline. The current one pulls tweets based on [MailChimp](http://mailchimp.com) filters. See below:
 
-`val terms = List("MailChimp", "Mailchimp", "MailChimp Status", "Mailchimp Status", "MailChimp UX", "Mailchimp UX", "MailChimp Design","Mailchimp Design", "MailChimp API", "Mailchimp API", "Mandrill", "mandrillapp", "TinyLetter", "Tinyletter")
-hosebirdEndpoint.trackTerms(terms)`
+`val terms = List("MailChimp", "Mailchimp", "MailChimp Status", "Mailchimp Status", "MailChimp UX", "Mailchimp UX", "MailChimp Design","Mailchimp Design", "MailChimp API", "Mailchimp API", "Mandrill", "mandrillapp", "TinyLetter", "Tinyletter")`
+`hosebirdEndpoint.trackTerms(terms)`
 
 * Publish messages to Kafka Topic through command-line **Kafka Producer**
   *  `bin/kafka-console-producer.sh --broker-list localhost:9092 --topic topic_name`
