@@ -21,21 +21,22 @@ import scala.collection.JavaConversions._
     FLOW: Source.actorRef(Source) ---> Stream ---> ActorSubscriber(Sink)
   =============================
 */
-object StreamMain extends App {
-  implicit val system = ActorSystem("SimpleTweets")
+object SimpleTweetPipelineMain extends App {
+  implicit val system = ActorSystem("SimpleTweetPipeline")
   implicit val materializer = ActorMaterializer()
 
   // Setting up props for Kafka Consumer
   val props = new Properties()
   props.put("bootstrap.servers", "localhost:9092")
-  props.put("group.id", "simple-tweets-consumer")
+  props.put("group.id", "simple-tweet-consumer")
   props.put("enable.auto.commit", "true")
   props.put("auto.commit.interval.ms", "1000")
   props.put("session.timeout.ms", "30000")
   props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
   props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
+
   val consumer = new KafkaConsumer[String, String](props)
-  consumer.subscribe(List("simple-tweets")) // Kafka-Consumer listening from the topic
+  consumer.subscribe(List("simple-tweet-pipeline")) // Kafka-Consumer listening from the topic
 
   // Source in this example is an ActorPublisher
   val simpleTweetSource = Source.actorPublisher[String](TweetPublisher.props(consumer))
@@ -45,7 +46,8 @@ object StreamMain extends App {
     Thread.sleep(1000) // simulate how akka-streams handles Backpressure
   })
 
-  println("simple-tweets stream starting...")
+  // starting the stream
+  println("simple-tweet data-pipeline starting...")
   val stream = Flow[String]
     // transform text to upper-case
     .map(text => text.toUpperCase)
