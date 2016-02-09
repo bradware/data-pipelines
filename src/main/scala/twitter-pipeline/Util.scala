@@ -25,7 +25,7 @@ object Util {
   /*
     Constructing the RichTweet object from raw Tweet JSON
   */
-  def extractTweetJSONFields(json: JValue) = {
+  def extractTweetFields(json: JValue) = {
     implicit val formats = DefaultFormats
     val text = (json \ "text").extract[String]
     val created_at = formatTweetDate((json \ "created_at").extract[String])

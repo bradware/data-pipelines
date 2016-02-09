@@ -74,7 +74,7 @@ object TwitterPipeline extends App {
   // Akka Stream/Flow: ActorPublisher ---> raw JSON ---> Tweet ---> Array[Byte] ---> ActorSubscriber
   val rawStream = Flow[String]
     .map(msg => parse(msg))
-    .map(json => Util.extractTweetJSONFields(json))
+    .map(json => Util.extractTweetFields(json))
     .map(tweet => Util.serialize[Tweet](tweet))
     .to(richTweetSink)
     .runWith(rawTweetSource)
@@ -83,7 +83,7 @@ object TwitterPipeline extends App {
   val richTweetSource = Source.actorPublisher[Array[Byte]](TweetPublisher.props(twitterConsumer))
   // Sink is simply the console
   val consoleSink = Sink.foreach[Tweet](tweet => {
-    println("============================================")
+    println("=========================================================================")
     println(tweet)
   })
 
