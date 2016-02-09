@@ -1,4 +1,4 @@
-# Data Pipeline Demo
+# Data Pipelines
 Repo containing 3 data pipeline mini-projects:
 * Simple Actor Pipeline
 * Simple Tweet Pipeline
