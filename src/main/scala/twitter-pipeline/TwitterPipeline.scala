@@ -11,7 +11,7 @@ import scala.collection.JavaConversions._
 /*
   =============================
   TWITTER PIPELINE OVERVIEW
-    1. Pull raw json tweets from Twitter HBC client
+    1. Pull raw json tweets from Twitter HBC
     2. Push raw json tweets into Kafka topic through Kafka Producer
     3. Pull raw json tweets from Kafka Consumer and store in Akka Publisher
     4. Akka Publisher sends raw json through first stream to transform/serialize to Tweet object
