@@ -7,6 +7,7 @@ import scala.collection.JavaConversions._
 
 /*
   =============================
+  SIMPLE ACTOR PIPELINE OVERVIEW
    1. Publish messages to Kafka Topic through command-line Producer
    2. Push messages to an Akka Actor from the Kafka Consumer (which polls from Kafka Topic)
    3. Messages go through a actor transition and undergo transformation

@@ -9,7 +9,7 @@ import scala.collection.JavaConversions._
 
 /*
   =============================
-  PIPELINE DEMO OVERVIEW
+  SIMPLE TWEET PIPELINE OVERVIEW
     1. Pull messages from Kafka Consumer into Akka ActorPublisher
     2. Push Messages through an Akka Stream/Runnable Flow and undergo some transformation (Source)
     3. Subscriber needs to read the messages from the Akka Stream/Runnable Flow (Sink)
