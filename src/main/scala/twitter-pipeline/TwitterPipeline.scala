@@ -21,7 +21,6 @@ import scala.collection.JavaConversions._
   =============================
 */
 object TwitterPipeline extends App {
-  // Akka Actor and Producer/Subscriber setup
   implicit val system = ActorSystem("TwitterPipeline")
   implicit val materializer = ActorMaterializer()
 
