@@ -18,6 +18,9 @@ import scala.collection.JavaConversions._
     5. Akka Subscriber takes serialized Tweet object and uses Kafka Producer to push to another Kafka Topic
     6. Kafka Consumer inside Akka Publisher pulls from topic and sends the serialized tweet through final stream
     7. Final Stream deserializes the Tweet object and dumps to console sink
+
+  TwitterHBC --> KafkaProd --> KafkaTopic --> ActorPub --> RawStream --> ActorSub --> KafkaTopic --> ActorPub -->
+    TransformedStream --> ConsoleSink
   =============================
 */
 object TwitterPipeline extends App {

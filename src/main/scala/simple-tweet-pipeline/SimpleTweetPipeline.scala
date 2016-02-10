@@ -10,10 +10,13 @@ import scala.collection.JavaConversions._
 /*
   =============================
   SIMPLE TWEET PIPELINE OVERVIEW
-    1. Pull messages from Kafka Consumer into Akka ActorPublisher
-    2. Push Messages through an Akka Stream/Runnable Flow and undergo some transformation (Source)
-    3. Subscriber needs to read the messages from the Akka Stream/Runnable Flow (Sink)
-    4. Subscriber/Sink dumps the transformed to the console
+    1. Use the Kafka Producer through the command line to send lowercase messages to the Kafka Topic
+    2. Pull lowercase messages from Kafka Topic through the Kafka Consumer into Akka ActorPublisher
+    3. Push lowercase messages through the Akka Stream which capitalizes and transforms to Simple Tweet objects
+    4. Console Sinks reads Simple Tweets from the Akka Stream
+    5. Console Sink dumps the Simple Tweet messages to the console
+
+  KafkaTopic --> ActorPub --> Stream/Flow --> ConsoleSink
   =============================
   =============================
   OPTIONS FOR IMPLEMENTATION
