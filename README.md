@@ -5,14 +5,14 @@ Repo containing 3 data pipeline mini-projects:
 * Twitter Pipeline
 
 ## Technologies
-* [Scala](http://www.scala-lang.org/download)
-* [Kafka](http://kafka.apache.org/downloads.html) (v9)
-* [Akka Streams](http://doc.akka.io/docs/akka-stream-and-http-experimental/2.0.2/scala.html)
-* [Twitter HBC API](https://github.com/twitter/hbc)
-* [Kryo - Twitter Chill](https://github.com/twitter/chill)
+* [Scala](//www.scala-lang.org/download)
+* [Kafka](//kafka.apache.org/downloads.html) (v9)
+* [Akka Streams](//doc.akka.io/docs/akka-stream-and-http-experimental/2.0.2/scala.html)
+* [Twitter HBC API](//github.com/twitter/hbc)
+* [Kryo - Twitter Chill](//github.com/twitter/chill)
 
 ## Getting Started
-* download [Kafka 9](http://kafka.apache.org/downloads.html)
+* download [Kafka 9](//kafka.apache.org/downloads.html)
 * navigate to where you downloaded kafka 9: 
   * `cd kafka_2.11-0.9.0.0`
 * `bin/zookeeper-server-start.sh config/zookeeper.properties`
@@ -29,10 +29,10 @@ Repo containing 3 data pipeline mini-projects:
 * Publish messages to Kafka Topic through command-line Kafka Producer
   *  `bin/kafka-console-producer.sh --broker-list localhost:9092 --topic topic_name`
 * Push messages to an Akka Actor from the Kafka Consumer (which polls from Kafka Topic)
-* Messages go through a actor transition and undergo transformation
+* Messages go through an actor pipeline and undergo transformation
 * Final actor dumps output to console
 
-`SimpleActor ----> SimpleProcessor -----> SimplePrinter -----> Dumps to console`
+`KafkaTopic --> SimpleActor --> SimpleProcessor --> SimplePrinter --> Dumps to console`
 
 **Note**: Make sure the kakfa topic in `SimpleActorPipeline.scala` matches the one you created during **Getting Started** and for the command line Kafka Producer
 
@@ -40,12 +40,14 @@ Run through `SimpleActorPipeline.scala`
 
 ## Simple Tweet Pipeline
 ### Overview
-* Publish messages to Kafka Topic through command-line Kafka Producer
+* Publish lowercase messages to Kafka Topic through command-line Kafka Producer
   *  `bin/kafka-console-producer.sh --broker-list localhost:9092 --topic topic_name`
-* Pull messages from Kafka Consumer into Akka ActorPublisher
-* Push Messages through an Akka Stream/Runnable Flow and undergo transformation (Source)
-* Subscriber reads the messages from the Akka Stream/Runnable Flow (Sink)
-* Subscriber/Sink dumps the transformed to the console
+* Pull lowercase messages from Kafka Topic through the Kafka Consumer into Akka ActorPublisher
+* Push lowercase messages through the Akka Stream which capitalizes and transforms to Simple Tweet objects
+* Console Sinks reads Simple Tweets from the Akka Stream
+* Console Sink dumps the Simple Tweet messages to the console
+
+`KafkaTopic --> ActorPub --> Stream/Flow --> ConsoleSink`
 
 **Note**: Make sure the kakfa topic in `SimpleTweetPipeline.scala` matches the one you created during **Getting Started** and for the command line Kafka Producer
 
@@ -66,6 +68,8 @@ In `Config.scala` update your Twitter Authentication Credentials
 * Akka Subscriber takes serialized `Tweet` object and uses Kafka Producer to push to another Kafka Topic
 * Kafka Consumer inside Akka Publisher pulls from topic and sends the serialized `Tweet` through final stream
 * Final Stream deserializes the `Tweet` object and dumps to console sink
+
+`TwitterHBC --> KafkaProd --> KafkaTopic --> ActorPub --> RawStream --> ActorSub --> KafkaTopic --> ActorPub -->       TransformedStream --> ConsoleSink`
 
 **Note**: Make sure the kakfa topics (yes Twitter Pipeline has 2) in `TwitterPipeline.scala` match the one you created during **Getting Started** 
 
