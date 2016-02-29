@@ -1,7 +1,7 @@
 # Data Pipelines
-* [Simple Actor Pipeline](//git.rsglab.com/bware/data-pipelines/blob/master/src/main/scala/simple-actor-pipeline/SimpleActorPipeline.scala)
-* [Simple Tweet Pipeline](//git.rsglab.com/bware/data-pipelines/blob/master/src/main/scala/simple-tweet-pipeline/SimpleTweetPipeline.scala)
-* [Twitter Pipeline](//git.rsglab.com/bware/data-pipelines/blob/master/src/main/scala/twitter-pipeline/TwitterPipeline.scala)
+* [Simple Actor Pipeline](//github.com/bradware/data-pipelines/blob/master/src/main/scala/simple-actor-pipeline/SimpleActorPipeline.scala)
+* [Simple Tweet Pipeline](//github.com/bradware/data-pipelines/blob/master/src/main/scala/simple-tweet-pipeline/SimpleTweetPipeline.scala)
+* [Twitter Pipeline](//github.com/bradware/data-pipelines/blob/master/src/main/scala/twitter-pipeline/TwitterPipeline.scala)
 
 ## Technologies
 * [Scala](//www.scala-lang.org/download)
