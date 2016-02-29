@@ -53,7 +53,7 @@ Run through `SimpleActorPipeline.scala`
 Run through `SimpleTweetPipeline.scala`
 
 ## Twitter Pipeline
-In `Config.scala` update the Twitter filter terms list and your auth credentials (see below) to correctly setup your HBC stream. The current one pulls tweets based on filtering for [MailChimp](//mailchimp.com).
+In `Config.scala` update the filter terms list and your auth credentials (see below) to correctly setup your Twitter HBC stream. The current one pulls tweets based on filtering for [MailChimp](//mailchimp.com).
 
 ```scala
 val terms = List("MailChimp", "Mailchimp", "MailChimp Status", "Mailchimp Status", "MailChimp UX", "Mailchimp UX", "MailChimp Design","Mailchimp Design", "MailChimp API", "Mailchimp API", "Mandrill", "mandrillapp", "TinyLetter", "Tinyletter")
@@ -65,8 +65,6 @@ val CONSUMER_SECRET = "insert_consumer_secret"
 val ACCESS_TOKEN = "insert_access_token"
 val SECRET_TOKEN = "insert_secret_token"
 ```
-
-In `Config.scala` update your Twitter Authentication Credentials
 
 ### Overview
 * Pull raw json tweets from Twitter HBC client
