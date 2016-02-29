@@ -14,10 +14,10 @@ import com.twitter.hbc.httpclient.auth.OAuth1
 
 object Config {
   // Twitter authentication credentials
-  val CONSUMER_KEY = "Fn2GkcTo7MTXBUTH86gCcTCIg"
-  val CONSUMER_SECRET = "UHcvIxWHjQl7M3VOvqQTNnRL3YAAmdTlFw9XL40vWl3waoPkOf"
-  val ACCESS_TOKEN = "4870020185-ebPfDGBbjSTBX6aSkV11u9uuqokjRG9rAAi7LEv"
-  val SECRET_TOKEN = "nHyoABn6hO1PJc7JgAmc9IRd3m9vD8Kzsd3hQ7eaVIJ4S"
+  val CONSUMER_KEY = "insert_consumer_key"
+  val CONSUMER_SECRET = "insert_consumer_secret"
+  val ACCESS_TOKEN = "insert_access_token"
+  val SECRET_TOKEN = "insert_secret_token"
 
   // Set up your blocking queues: Be sure to size these properly based on expected TPS of your stream
   val msgQueue = new LinkedBlockingQueue[String](100000)
